@@ -1,0 +1,3 @@
+A customisable application to install recommended applications not included in the standard RPD image.
+
+To build, run autogen.sh, then ./configure and make.

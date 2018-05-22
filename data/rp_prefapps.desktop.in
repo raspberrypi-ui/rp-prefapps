@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+_Name=Recommended Applications
+_GenericName=Recommended Applications
+_Comment=Recommended applications for the Raspberry Pi
+Icon=rpi
+Exec=sudo rp_prefapps
+NotShowIn=GNOME;XFCE;
+StartupNotify=true
+Categories=Settings;DesktopSettings;GTK;X-LXDE-Settings;
