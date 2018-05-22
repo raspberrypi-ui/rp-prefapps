@@ -5,6 +5,8 @@
 *.gmo
 *.lo
 *.desktop
+*.log
+*.pot
 .dirstamp
 configure
 config.guess
