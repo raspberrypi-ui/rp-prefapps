@@ -27,20 +27,9 @@ static GtkWidget *cat_tv, *pack_tv;
 static GtkWidget *cancel_btn, *install_btn;
 
 GtkListStore *categories, *packages;
-gint pulse_timer = 0;
 
 guint inst, uninst;
 gchar **pnames, **pinst, **puninst;
-
-static gboolean pulse_pb (gpointer data)
-{
-    if (msg_dlg)
-    {
-        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-        return TRUE;
-    }
-    else return FALSE;
-}
 
 static gboolean ok_clicked (GtkButton *button, gpointer data)
 {
@@ -49,7 +38,7 @@ static gboolean ok_clicked (GtkButton *button, gpointer data)
     return FALSE;
 }
 
-static void message (char *msg, int wait, int prog, gboolean pulse)
+static void message (char *msg, int wait, int prog)
 {
     if (!msg_dlg)
     {
@@ -81,8 +70,6 @@ static void message (char *msg, int wait, int prog, gboolean pulse)
     }
     else gtk_label_set_text (GTK_LABEL (msg_msg), msg);
 
-    if (pulse_timer) g_source_remove (pulse_timer);
-    pulse_timer = 0;
     if (wait)
     {
         g_signal_connect (msg_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
@@ -93,14 +80,7 @@ static void message (char *msg, int wait, int prog, gboolean pulse)
     {
         gtk_widget_set_visible (msg_btn, FALSE);
         gtk_widget_set_visible (msg_pb, TRUE);
-        if (prog == -1)
-        {
-            if (pulse)
-            {
-                gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-                pulse_timer = g_timeout_add (200, pulse_pb, NULL);
-            }
-        }
+        if (prog == -1) gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
         else
         {
             float progress = prog / 100.0;
@@ -109,35 +89,76 @@ static void message (char *msg, int wait, int prog, gboolean pulse)
     }
 }
 
+static char* name_from_id (const gchar *id)
+{
+    GtkTreeIter iter;
+    gboolean valid;
+    gchar *tid, *name;
+
+    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
+    while (valid)
+    {
+        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 5, &tid, 6, &name, -1);
+        if (!g_strcmp0 (id, tid)) return name;
+        valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
+    }
+    return NULL;
+}
+
 
 static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
 {
+    char *buf, *name;
     int role = pk_progress_get_role (progress);
+    int status = pk_progress_get_status (progress);
 
-    printf ("progress %d %d %d %d %s\n", role, type, pk_progress_get_status (progress), pk_progress_get_percentage (progress), pk_progress_get_package_id (progress));
+    //printf ("progress %d %d %d %d %s\n", role, type, status, pk_progress_get_percentage (progress), pk_progress_get_package_id (progress));
 
     if (msg_dlg)
     {
-        switch (pk_progress_get_status (progress))
+        switch (role)
         {
-            case PK_STATUS_ENUM_DOWNLOAD :  if ((int) type == PK_PROGRESS_TYPE_PERCENTAGE)
-                                            {
-                                                if (role == PK_ROLE_ENUM_REFRESH_CACHE)
-                                                    message (_("Reading update list - please wait..."), 0, pk_progress_get_percentage (progress), FALSE);
-                                                else if (role == PK_ROLE_ENUM_UPDATE_PACKAGES)
-                                                    message (_("Downloading updates - please wait..."), 0, pk_progress_get_percentage (progress), FALSE);
-                                            }
-                                            break;
+            case PK_ROLE_ENUM_REFRESH_CACHE :       if (status == PK_STATUS_ENUM_LOADING_CACHE)
+                                                        message (_("Updating package data - please wait..."), 0, pk_progress_get_percentage (progress));
+                                                    else
+                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                    break;
 
-            case PK_STATUS_ENUM_INSTALL :   if ((int) type == PK_PROGRESS_TYPE_PERCENTAGE)
-                                            {
-                                                if (role == PK_ROLE_ENUM_UPDATE_PACKAGES)
-                                                    message (_("Installing updates - please wait..."), 0, pk_progress_get_percentage (progress), FALSE);
-                                            }
-                                            break;
+            case PK_ROLE_ENUM_RESOLVE :             if (status == PK_STATUS_ENUM_LOADING_CACHE)
+                                                        message (_("Reading package status - please wait..."), 0, pk_progress_get_percentage (progress));
+                                                    else
+                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                    break;
 
-            default :                       gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-                                            break;
+            case PK_ROLE_ENUM_INSTALL_PACKAGES :    if (status == PK_STATUS_ENUM_DOWNLOAD || status == PK_STATUS_ENUM_INSTALL)
+                                                    {
+                                                        name = name_from_id (pk_progress_get_package_id (progress));
+                                                        if (name)
+                                                        {
+                                                            buf = g_strdup_printf (_("Installing %s - please wait..."), name);
+                                                            message (buf, 0, pk_progress_get_percentage (progress));
+                                                        }
+                                                        else
+                                                            message (_("Installing packages - please wait..."), 0, pk_progress_get_percentage (progress));
+                                                    }
+                                                    else
+                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                    break;
+
+            case PK_ROLE_ENUM_REMOVE_PACKAGES :     if (status == PK_STATUS_ENUM_REMOVE)
+                                                    {
+                                                        name = name_from_id (pk_progress_get_package_id (progress));
+                                                        if (name)
+                                                        {
+                                                            buf = g_strdup_printf (_("Removing %s - please wait..."), name);
+                                                            message (buf, 0, pk_progress_get_percentage (progress));
+                                                        }
+                                                        else
+                                                            message (_("Removing packages - please wait..."), 0, pk_progress_get_percentage (progress));
+                                                   }
+                                                    else
+                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                    break;
         }
     }
 }
@@ -160,7 +181,7 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (error != NULL)
     {
         buf = g_strdup_printf (_("Error reading package status - %s"), error->message);
-        message (buf, 1, -1, FALSE);
+        message (buf, 1, -1);
         g_free (buf);
         return;
     }
@@ -169,7 +190,7 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (pkerror != NULL)
     {
         buf = g_strdup_printf (_("Error reading package status - %s"), pk_error_get_details (pkerror));
-        message (buf, 1, -1, FALSE);
+        message (buf, 1, -1);
         g_free (buf);
         return;
     }
@@ -208,7 +229,7 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (error != NULL)
     {
         buf = g_strdup_printf (_("Error updating package data - %s"), error->message);
-        message (buf, 1, -1, FALSE);
+        message (buf, 1, -1);
         g_free (buf);
         return;
     }
@@ -217,12 +238,12 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (pkerror != NULL)
     {
         buf = g_strdup_printf (_("Error updating package data - %s"), pk_error_get_details (pkerror));
-        message (buf, 1, -1, FALSE);
+        message (buf, 1, -1);
         g_free (buf);
         return;
     }
 
-    message (_("Reading package status - please wait..."), 0 , -1, FALSE);
+    message (_("Reading package status - please wait..."), 0 , -1);
 
     pk_client_resolve_async (PK_CLIENT (task), 0, pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_done, NULL);
 }
@@ -231,7 +252,7 @@ static void update_package_data (void)
 {
     PkTask *task;
 
-    message (_("Updating package data - please wait..."), 0 , -1, FALSE);
+    message (_("Updating package data - please wait..."), 0 , -1);
 
     task = pk_task_new ();
     pk_client_refresh_cache_async (PK_CLIENT (task), TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) refresh_cache_done, NULL);
@@ -308,7 +329,7 @@ static void read_data_file (void)
             buf = g_strdup_printf ("<b>%s</b>\n%s\nSize : %s MB", name, desc, size);
             icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
             gtk_list_store_append (packages, &entry);
-            gtk_list_store_set (packages, &entry, 0, icon, 1, buf, 2, FALSE, 3, cat, 4, pnames[pcount - 1], -1);
+            gtk_list_store_set (packages, &entry, 0, icon, 1, buf, 2, FALSE, 3, cat, 4, pnames[pcount - 1], 6, name, -1);
 
             g_free (buf);
             g_object_unref (icon);
@@ -398,7 +419,7 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     if (uninst)
     {
-        message (_("Removing packages - please wait..."), 0 , -1, FALSE);
+        message (_("Removing packages - please wait..."), 0 , -1);
 
         pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
     }
@@ -450,14 +471,14 @@ static void install (GtkButton* btn, gpointer ptr)
 
     if (inst)
     {
-       message (_("Installing packages - please wait..."), 0 , -1, FALSE);
+       message (_("Installing packages - please wait..."), 0 , -1);
 
         task = pk_task_new ();
         pk_task_install_packages_async (task, pinst, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) install_done, NULL);
     }
     else if (uninst)
     {
-        message (_("Removing packages - please wait..."), 0 , -1, FALSE);
+        message (_("Removing packages - please wait..."), 0 , -1);
 
         task = pk_task_new ();
         pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
@@ -499,7 +520,7 @@ int main (int argc, char *argv[])
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    packages = gtk_list_store_new (6, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+    packages = gtk_list_store_new (7, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 
     // set up tree views
     crp = gtk_cell_renderer_pixbuf_new ();
