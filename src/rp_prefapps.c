@@ -29,7 +29,8 @@ static GtkWidget *cancel_btn, *install_btn;
 GtkListStore *categories, *packages;
 gint pulse_timer = 0;
 
-gchar **pnames;
+guint inst, uninst;
+gchar **pnames, **pinst, **puninst;
 
 static gboolean pulse_pb (gpointer data)
 {
@@ -113,6 +114,8 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
 {
     int role = pk_progress_get_role (progress);
 
+    printf ("progress %d %d %d %d %s\n", role, type, pk_progress_get_status (progress), pk_progress_get_percentage (progress), pk_progress_get_package_id (progress));
+
     if (msg_dlg)
     {
         switch (pk_progress_get_status (progress))
@@ -184,7 +187,7 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
             gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 4, &buf, -1);
             if (!strncmp (buf, package_id, strlen (buf)))
             {
-                gtk_list_store_set (packages, &iter, 2, strstr (package_id, ";installed:") ? TRUE : FALSE, -1);
+                gtk_list_store_set (packages, &iter, 2, strstr (package_id, ";installed:") ? TRUE : FALSE, 5, package_id, -1);
                 break;
             }
             valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
@@ -385,9 +388,81 @@ static void cancel (GtkButton* btn, gpointer ptr)
     gtk_main_quit ();
 }
 
-static void install (GtkButton* btn, gpointer ptr)
+
+static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     gtk_main_quit ();
+}
+
+static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    if (uninst)
+    {
+        message (_("Removing packages - please wait..."), 0 , -1, FALSE);
+
+        pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
+    }
+    else gtk_main_quit ();
+}
+
+static void install (GtkButton* btn, gpointer ptr)
+{
+    PkTask *task;
+    GtkTreeIter iter;
+    gboolean valid, state;
+    gchar *id;
+
+    inst = 0;
+    uninst = 0;
+    pinst = malloc (sizeof (gchar *));
+    pinst[inst] = NULL;
+    pinst = malloc (sizeof (gchar *));
+    pinst[uninst] = NULL;
+
+    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
+    while (valid)
+    {
+        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 2, &state, 5, &id, -1);
+        if (!strstr (id, ";installed:"))
+        {
+            if (state)
+            {
+                // needs install
+                pinst = realloc (pinst, (inst + 1) * sizeof (gchar *));
+                pinst[inst] = id;
+                inst++;
+                pinst[inst] = NULL;
+            }
+        }
+        else
+        {
+            if (!state)
+            {
+                // needs uninstall
+                puninst = realloc (puninst, (uninst + 1) * sizeof (gchar *));
+                puninst[uninst] = id;
+                uninst++;
+                puninst[uninst] = NULL;
+            }
+        }
+        valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
+    }
+
+    if (inst)
+    {
+       message (_("Installing packages - please wait..."), 0 , -1, FALSE);
+
+        task = pk_task_new ();
+        pk_task_install_packages_async (task, pinst, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) install_done, NULL);
+    }
+    else if (uninst)
+    {
+        message (_("Removing packages - please wait..."), 0 , -1, FALSE);
+
+        task = pk_task_new ();
+        pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
+    }
+    else gtk_main_quit ();
 }
 
 /* The dialog... */
@@ -424,7 +499,7 @@ int main (int argc, char *argv[])
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    packages = gtk_list_store_new (5, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING);
+    packages = gtk_list_store_new (6, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
 
     // set up tree views
     crp = gtk_cell_renderer_pixbuf_new ();
