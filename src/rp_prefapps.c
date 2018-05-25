@@ -265,6 +265,41 @@ static const char *cat_icon_name (char *category)
 
     if (!g_strcmp0 (category, "Office"))
         return "applications-office";
+
+    if (!g_strcmp0 (category, "Internet"))
+        return "applications-internet";
+
+    if (!g_strcmp0 (category, "Games"))
+        return "applications-games";
+
+    if (!g_strcmp0 (category, "Other"))
+        return "applications-other";
+
+    if (!g_strcmp0 (category, "Accessories"))
+        return "applications-accessories";
+
+    if (!g_strcmp0 (category, "Sound & Video"))
+        return "applications-multimedia";
+
+    if (!g_strcmp0 (category, "System Tools"))
+        return "applications-system";
+
+    if (!g_strcmp0 (category, "Engineering"))
+        return "applications-engineering";
+
+    if (!g_strcmp0 (category, "Education"))
+        return "applications-science";
+
+    if (!g_strcmp0 (category, "Graphics"))
+        return "applications-graphics";
+
+    if (!g_strcmp0 (category, "Science & Maths"))
+        return "applications-science";
+
+    if (!g_strcmp0 (category, "Preferences"))
+        return "preferences-desktop";
+
+    return NULL;
 }
 
 static gboolean read_data_file (gpointer data)
@@ -419,7 +454,6 @@ static void cancel (GtkButton* btn, gpointer ptr)
 {
     gtk_main_quit ();
 }
-
 
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
