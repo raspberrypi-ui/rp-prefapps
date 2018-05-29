@@ -671,7 +671,7 @@ int main (int argc, char *argv[])
     g_signal_connect (install_btn, "clicked", G_CALLBACK (install), NULL);
     g_signal_connect (main_dlg, "delete_event", G_CALLBACK (cancel), NULL);
 
-    gtk_window_set_default_size (GTK_WINDOW (main_dlg), 600, 400);
+    gtk_window_set_default_size (GTK_WINDOW (main_dlg), 700, 400);
     gtk_widget_show_all (main_dlg);
 
     // load the data file and check with backend
