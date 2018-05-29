@@ -258,7 +258,7 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
     GError *error = NULL;
     GPtrArray *array;
     GtkTreeIter iter;
-    gboolean valid;
+    gboolean valid, inst;
     gchar *buf, *package_id, *summary;
     int i;
 
@@ -290,13 +290,15 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
         valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
         while (valid)
         {
-            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 4, &buf, -1);
+            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 2, &inst, 4, &buf, -1);
             if (!strncmp (buf, package_id, strlen (buf)))
             {
-                gtk_list_store_set (packages, &iter, 2, strstr (package_id, ";installed:") ? TRUE : FALSE, 5, package_id, -1);
+                gtk_list_store_set (packages, &iter, 5, package_id, -1);
+                if (!inst && info == PK_INFO_ENUM_INSTALLED) gtk_list_store_set (packages, &iter, 2, TRUE, -1);
                 break;
             }
             valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
+            g_free (buf);
         }
     }
 
