@@ -32,8 +32,22 @@ GtkTreeModel *fpackages;
 guint inst, uninst;
 gchar **pnames, **pinst, **puninst;
 
+static gboolean ok_clicked (GtkButton *button, gpointer data);
+static void message (char *msg, int wait, int prog);
+static char *name_from_id (const gchar *id);
+static void progress (PkProgress *progress, PkProgressType *type, gpointer data);
+static void details_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data);
+static const char *cat_icon_name (char *category);
+static gboolean read_data_file (gpointer data);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 static void category_selected (GtkTreeView *tv, gpointer ptr);
+static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data);
+static void cancel (GtkButton* btn, gpointer ptr);
+static void remove_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void install_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void install (GtkButton* btn, gpointer ptr);
 
 
 static gboolean ok_clicked (GtkButton *button, gpointer data)
@@ -94,7 +108,7 @@ static void message (char *msg, int wait, int prog)
     }
 }
 
-static char* name_from_id (const gchar *id)
+static char *name_from_id (const gchar *id)
 {
     GtkTreeIter iter;
     gboolean valid;
