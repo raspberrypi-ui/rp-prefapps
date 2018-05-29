@@ -133,6 +133,12 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
                                                         gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
                                                     break;
 
+            case PK_ROLE_ENUM_GET_DETAILS :         if (status == PK_STATUS_ENUM_LOADING_CACHE)
+                                                        message (_("Reading package details - please wait..."), 0, pk_progress_get_percentage (progress));
+                                                    else
+                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                    break;
+
             case PK_ROLE_ENUM_INSTALL_PACKAGES :    if (status == PK_STATUS_ENUM_DOWNLOAD || status == PK_STATUS_ENUM_INSTALL)
                                                     {
                                                         name = name_from_id (pk_progress_get_package_id (progress));
@@ -167,11 +173,87 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
 }
 
 
+static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    PkResults *results;
+    PkError *pkerror;
+    PkDetails *item;
+    GError *error = NULL;
+    GPtrArray *array;
+    GtkTreeIter iter;
+    gboolean valid;
+    gchar *buf, *name, *desc;
+    const gchar *package_id;
+    guint64 siz;
+    float skb;
+    int i, dp;
+
+    results = pk_task_generic_finish (task, res, &error);
+    if (error != NULL)
+    {
+        buf = g_strdup_printf (_("Error reading package details - %s"), error->message);
+        message (buf, 1, -1);
+        g_free (buf);
+        return;
+    }
+
+    pkerror = pk_results_get_error_code (results);
+    if (pkerror != NULL)
+    {
+        buf = g_strdup_printf (_("Error reading package details - %s"), pk_error_get_details (pkerror));
+        message (buf, 1, -1);
+        g_free (buf);
+        return;
+    }
+
+    array = pk_results_get_details_array (results);
+
+    for (i = 0; i < array->len; i++)
+    {
+        item = g_ptr_array_index (array, i);
+        package_id = pk_details_get_package_id (item);
+
+        valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
+        while (valid)
+        {
+            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 4, &buf, 6, &name, 7, &desc, -1);
+            if (!strncmp (buf, package_id, strlen (buf)))
+            {
+                siz = pk_details_get_size (item);
+                gtk_list_store_set (packages, &iter, 8, siz, -1);
+                skb = siz;
+                skb /= 1048576.0;
+                if (skb >= 100) dp = 0;
+                else if (skb >= 10) dp = 1;
+                else dp = 2;
+
+                g_free (buf);
+                buf = g_strdup_printf ("<b>%s</b>\n%s\nSize : %.*f MB", name, desc, dp, skb);
+                gtk_list_store_set (packages, &iter, 1, buf, -1);
+                g_free (buf);
+
+                break;
+            }
+            valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
+        }
+    }
+
+    // data now all loaded - show the main window
+    gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (categories));
+    gtk_tree_model_get_iter_first (GTK_TREE_MODEL (categories), &iter);
+    gtk_tree_selection_select_iter (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), &iter);
+    category_selected (GTK_TREE_VIEW (cat_tv), NULL);
+
+    gtk_widget_destroy (GTK_WIDGET (msg_dlg));
+    msg_dlg = NULL;
+}
+
 static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
     PkError *pkerror;
     PkPackage *item;
+    PkPackageSack *sack;
     PkInfoEnum info;
     GError *error = NULL;
     GPtrArray *array;
@@ -203,7 +285,7 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
     for (i = 0; i < array->len; i++)
     {
         item = g_ptr_array_index (array, i);
-        g_object_get (item, "info", &info, "package-id", &package_id, "summary", &summary,  NULL);
+        g_object_get (item, "info", &info, "package-id", &package_id, "summary", &summary, NULL);
 
         valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
         while (valid)
@@ -218,14 +300,10 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
         }
     }
 
-    // data now all loaded - show the main window
-    gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (categories));
-    gtk_tree_model_get_iter_first (GTK_TREE_MODEL (categories), &iter);
-    gtk_tree_selection_select_iter (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), &iter);
-    category_selected (GTK_TREE_VIEW (cat_tv), NULL);
+    message (_("Reading package details - please wait..."), 0 , -1);
 
-    gtk_widget_destroy (GTK_WIDGET (msg_dlg));
-    msg_dlg = NULL;
+    sack = pk_results_get_package_sack (results);
+    pk_client_get_details_async (PK_CLIENT (task), pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
 }
 
 static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
@@ -309,7 +387,7 @@ static gboolean read_data_file (gpointer data)
     GKeyFile *kf;
     PkTask *task;
     gchar **groups;
-    gchar *buf, *cat, *name, *desc, *size, *iname;
+    gchar *buf, *cat, *name, *desc, *iname;
     gboolean new;
     gchar *pname;
     int pcount = 0;
@@ -327,7 +405,6 @@ static gboolean read_data_file (gpointer data)
             cat = g_key_file_get_value (kf, *groups, "category", NULL);
             name = g_key_file_get_value (kf, *groups, "name", NULL);
             desc = g_key_file_get_value (kf, *groups, "description", NULL);
-            size = g_key_file_get_value (kf, *groups, "size", NULL);
             iname = g_key_file_get_value (kf, *groups, "icon", NULL);
 
             // create array of package names
@@ -359,17 +436,15 @@ static gboolean read_data_file (gpointer data)
             }
 
             // create the entry for the packages list
-            buf = g_strdup_printf ("<b>%s</b>\n%s\nSize : %s MB", name, desc, size);
             icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
             gtk_list_store_append (packages, &entry);
-            gtk_list_store_set (packages, &entry, 0, icon, 1, buf, 2, FALSE, 3, cat, 4, pnames[pcount - 1], 5, "none", 6, name, -1);
+            gtk_list_store_set (packages, &entry, 0, icon, 2, FALSE, 3, cat, 4, pnames[pcount - 1], 5, "none", 6, name, 7, desc, -1);
 
-            g_free (buf);
+            //g_free (buf);
             g_object_unref (icon);
             g_free (cat);
             g_free (name);
             g_free (desc);
-            g_free (size);
             g_free (iname);
 
             groups++;
@@ -565,7 +640,7 @@ int main (int argc, char *argv[])
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    packages = gtk_list_store_new (7, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+    packages = gtk_list_store_new (9, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT64);
 
     // set up tree views
     crp = gtk_cell_renderer_pixbuf_new ();
