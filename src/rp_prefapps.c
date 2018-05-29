@@ -415,8 +415,7 @@ static gboolean read_data_file (gpointer data)
 
             // create array of package names
             pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
-            pnames[pcount] = g_key_file_get_value (kf, *groups, "package", NULL);
-            pcount++;
+            pnames[pcount++] = g_key_file_get_value (kf, *groups, "package", NULL);
             pnames[pcount] = NULL;
 
             // add unique entries to category list
@@ -446,8 +445,7 @@ static gboolean read_data_file (gpointer data)
             gtk_list_store_append (packages, &entry);
             gtk_list_store_set (packages, &entry, 0, icon, 2, FALSE, 3, cat, 4, pnames[pcount - 1], 5, "none", 6, name, 7, desc, -1);
 
-            //g_free (buf);
-            g_object_unref (icon);
+            if (icon) g_object_unref (icon);
             g_free (cat);
             g_free (name);
             g_free (desc);
@@ -512,22 +510,16 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     gboolean val;
     GtkTreeIter iter, citer;
     GtkTreeModel *model, *cmodel;
-    
-    model = gtk_tree_view_get_model (GTK_TREE_VIEW (user_data));
+
+    model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     gtk_tree_model_get_iter_from_string (model, &iter, path);
-    
-    if (GTK_IS_TREE_MODEL_FILTER (model))
-    {
-        cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
-        gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
-        gtk_tree_model_get (cmodel, &citer, 2, &val, -1);
-        gtk_list_store_set (GTK_LIST_STORE (cmodel), &citer, 2, 1-val, -1);
-    }
-    else
-    {
-        gtk_tree_model_get (model, &iter, 2, &val, -1);
-        gtk_list_store_set (GTK_LIST_STORE (model), &iter, 2, 1-val, -1);
-    }
+
+    cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
+    gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
+
+    gtk_tree_model_get (cmodel, &citer, 2, &val, -1);
+    gtk_list_store_set (GTK_LIST_STORE (cmodel), &citer, 2, 1 - val, -1);
+
     category_selected (GTK_TREE_VIEW (cat_tv), NULL);
 }
 
@@ -576,8 +568,7 @@ static void install (GtkButton* btn, gpointer ptr)
             {
                 // needs install
                 pinst = realloc (pinst, (inst + 1) * sizeof (gchar *));
-                pinst[inst] = id;
-                inst++;
+                pinst[inst++] = id;
                 pinst[inst] = NULL;
             }
         }
@@ -587,8 +578,7 @@ static void install (GtkButton* btn, gpointer ptr)
             {
                 // needs uninstall
                 puninst = realloc (puninst, (uninst + 1) * sizeof (gchar *));
-                puninst[uninst] = id;
-                uninst++;
+                puninst[uninst++] = id;
                 puninst[uninst] = NULL;
             }
         }
@@ -668,7 +658,7 @@ int main (int argc, char *argv[])
     g_object_set (crt, "wrap-mode", PANGO_WRAP_WORD, "wrap-width", 400, NULL);
 
     g_signal_connect (cat_tv, "cursor-changed", G_CALLBACK (category_selected), NULL);
-    g_signal_connect (crb, "toggled", G_CALLBACK (install_toggled), pack_tv);
+    g_signal_connect (crb, "toggled", G_CALLBACK (install_toggled), NULL);
     g_signal_connect (cancel_btn, "clicked", G_CALLBACK (cancel), NULL);
     g_signal_connect (install_btn, "clicked", G_CALLBACK (install), NULL);
     g_signal_connect (main_dlg, "delete_event", G_CALLBACK (cancel), NULL);
