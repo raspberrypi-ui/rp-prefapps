@@ -470,20 +470,37 @@ static gboolean read_data_file (gpointer data)
 
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
 {
-    char *str;
+    GtkTreeModel *cmodel;
+    GtkTreeIter citer;
+    GtkTreeSelection *sel;
+    char *str, *cat;
     gboolean res;
 
+    // get the current category selection from the category box
+    sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv));
+    if (sel && gtk_tree_selection_get_selected (sel, &cmodel, &citer))
+    {
+        gtk_tree_model_get (cmodel, &citer, 1, &cat, -1);
+    }
+    else cat = g_strdup ("All Programs");
+
+    // first make sure the package has a package ID - ignore if not
     gtk_tree_model_get (model, iter, 5, &str, -1);
     if (!g_strcmp0 (str, "none")) res = FALSE;
     else
     {
-        g_free (str);
-        if (!g_strcmp0 ("All Programs", (char *) data)) return TRUE;
-        gtk_tree_model_get (model, iter, 3, &str, -1);
-        if (!g_strcmp0 (str, (char *) data)) res = TRUE;
-        else res = FALSE;
+        // check that category matches
+        if (!g_strcmp0 (cat, "All Programs")) res = TRUE;
+        else
+        {
+            g_free (str);
+            gtk_tree_model_get (model, iter, 3, &str, -1);
+            if (!g_strcmp0 (str, cat)) res = TRUE;
+            else res = FALSE;
+        }
     }
     g_free (str);
+    g_free (cat);
     return res;
 }
 
@@ -492,24 +509,21 @@ static void category_selected (GtkTreeView *tv, gpointer ptr)
     GtkTreeModel *model, *fpackages;
     GtkTreeIter iter;
     GtkTreeSelection *sel;
-    char *cat;
 
     sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv));
     if (sel && gtk_tree_selection_get_selected (sel, &model, &iter))
     {
-        gtk_tree_model_get (model, &iter, 1, &cat, -1);
         fpackages = gtk_tree_model_filter_new (GTK_TREE_MODEL (packages), NULL);
-        gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fpackages), (GtkTreeModelFilterVisibleFunc) match_category, cat, NULL);
+        gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fpackages), (GtkTreeModelFilterVisibleFunc) match_category, NULL, NULL);
         gtk_tree_view_set_model (GTK_TREE_VIEW (pack_tv), GTK_TREE_MODEL (fpackages));
-        g_free (cat);
     } 
 }
 
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data)
 {
-    gboolean val;
     GtkTreeIter iter, citer;
     GtkTreeModel *model, *cmodel;
+    gboolean val;
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     gtk_tree_model_get_iter_from_string (model, &iter, path);
@@ -519,8 +533,6 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
 
     gtk_tree_model_get (cmodel, &citer, 2, &val, -1);
     gtk_list_store_set (GTK_LIST_STORE (cmodel), &citer, 2, 1 - val, -1);
-
-    category_selected (GTK_TREE_VIEW (cat_tv), NULL);
 }
 
 static void cancel (GtkButton* btn, gpointer ptr)
