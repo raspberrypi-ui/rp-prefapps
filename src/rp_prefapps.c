@@ -291,10 +291,14 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
         while (valid)
         {
             gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 2, &inst, 4, &buf, -1);
-            if (!strncmp (buf, package_id, strlen (buf)))
+
+            // only update the package id string if no installed version of this package has already been found...
+            if (!strncmp (buf, package_id, strlen (buf)) && !inst)
             {
                 gtk_list_store_set (packages, &iter, 5, package_id, -1);
-                if (!inst && info == PK_INFO_ENUM_INSTALLED) gtk_list_store_set (packages, &iter, 2, TRUE, -1);
+
+                // never toggle installed flag from installed to uninstalled - only one version is ever installed...
+                if (info == PK_INFO_ENUM_INSTALLED) gtk_list_store_set (packages, &iter, 2, TRUE, -1);
                 break;
             }
             valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
