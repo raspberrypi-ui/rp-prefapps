@@ -27,10 +27,12 @@ static GtkWidget *cat_tv, *pack_tv;
 static GtkWidget *cancel_btn, *install_btn;
 
 GtkListStore *categories, *packages;
+GtkTreeModel *fpackages;
 
 guint inst, uninst;
 gchar **pnames, **pinst, **puninst;
 
+static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 static void category_selected (GtkTreeView *tv, gpointer ptr);
 
 
@@ -242,7 +244,11 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (categories));
     gtk_tree_model_get_iter_first (GTK_TREE_MODEL (categories), &iter);
     gtk_tree_selection_select_iter (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), &iter);
-    category_selected (GTK_TREE_VIEW (cat_tv), NULL);
+
+    // set up category filter for package list
+    fpackages = gtk_tree_model_filter_new (GTK_TREE_MODEL (packages), NULL);
+    gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fpackages), (GtkTreeModelFilterVisibleFunc) match_category, NULL, NULL);
+    gtk_tree_view_set_model (GTK_TREE_VIEW (pack_tv), GTK_TREE_MODEL (fpackages));
 
     gtk_widget_destroy (GTK_WIDGET (msg_dlg));
     msg_dlg = NULL;
@@ -506,17 +512,7 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
 
 static void category_selected (GtkTreeView *tv, gpointer ptr)
 {
-    GtkTreeModel *model, *fpackages;
-    GtkTreeIter iter;
-    GtkTreeSelection *sel;
-
-    sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (tv));
-    if (sel && gtk_tree_selection_get_selected (sel, &model, &iter))
-    {
-        fpackages = gtk_tree_model_filter_new (GTK_TREE_MODEL (packages), NULL);
-        gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fpackages), (GtkTreeModelFilterVisibleFunc) match_category, NULL, NULL);
-        gtk_tree_view_set_model (GTK_TREE_VIEW (pack_tv), GTK_TREE_MODEL (fpackages));
-    } 
+    gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (fpackages));
 }
 
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data)
