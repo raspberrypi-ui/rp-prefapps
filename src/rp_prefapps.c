@@ -639,8 +639,8 @@ static void install (GtkButton* btn, gpointer ptr)
             if (state)
             {
                 // needs install
-                pinst = realloc (pinst, (inst + 1) * sizeof (gchar *));
-                pinst[inst++] = id;
+                pinst = realloc (pinst, (inst + 2) * sizeof (gchar *));
+                pinst[inst++] = g_strdup (id);
                 pinst[inst] = NULL;
             }
         }
@@ -649,11 +649,12 @@ static void install (GtkButton* btn, gpointer ptr)
             if (!state)
             {
                 // needs uninstall
-                puninst = realloc (puninst, (uninst + 1) * sizeof (gchar *));
-                puninst[uninst++] = id;
+                puninst = realloc (puninst, (uninst + 2) * sizeof (gchar *));
+                puninst[uninst++] = g_strdup (id);
                 puninst[uninst] = NULL;
             }
         }
+        g_free (id);
         valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
     }
 
