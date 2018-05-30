@@ -126,7 +126,6 @@ static char *name_from_id (const gchar *id)
     return NULL;
 }
 
-
 static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
 {
     char *buf, *name;
@@ -250,7 +249,6 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
                 g_free (buf);
                 g_free (name);
                 g_free (desc);
-
                 break;
             }
             g_free (buf);
@@ -538,14 +536,12 @@ static void package_selected (GtkTreeView *tv, gpointer ptr)
 {
     GtkTreeModel *model;
     GtkTreeSelection *sel;
-    GtkTreePath *path;
     GList *rows;
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (pack_tv));
     rows = gtk_tree_selection_get_selected_rows (sel, &model);
-    path = g_list_nth_data (rows, 0);
-    if (path) gtk_widget_set_sensitive (info_btn, TRUE);
+    if (rows && rows->data) gtk_widget_set_sensitive (info_btn, TRUE);
     else gtk_widget_set_sensitive (info_btn, FALSE);
 }
 
@@ -586,17 +582,15 @@ static void info (GtkButton* btn, gpointer ptr)
     GtkTreeIter iter, citer;
     GtkTreeModel *model, *cmodel;
     GtkTreeSelection *sel;
-    GtkTreePath *path;
     GList *rows;
     gchar *str = NULL;
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (pack_tv));
     rows = gtk_tree_selection_get_selected_rows (sel, &model);
-    path = g_list_nth_data (rows, 0);
-    if (path)
+    if (rows && rows->data)
     {
-        gtk_tree_model_get_iter (model, &iter, path);
+        gtk_tree_model_get_iter (model, &iter, (GtkTreePath *) rows->data);
 
         cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
