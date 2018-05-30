@@ -24,7 +24,7 @@
 
 static GtkWidget *main_dlg, *msg_dlg, *msg_msg, *msg_pb, *msg_btn;;
 static GtkWidget *cat_tv, *pack_tv;
-static GtkWidget *cancel_btn, *install_btn;
+static GtkWidget *cancel_btn, *install_btn, *info_btn;
 
 GtkListStore *categories, *packages;
 GtkTreeModel *fpackages;
@@ -42,10 +42,12 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data);
 static const char *cat_icon_name (char *category);
 static gboolean read_data_file (gpointer data);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
+static void package_selected (GtkTreeView *tv, gpointer ptr);
 static void category_selected (GtkTreeView *tv, gpointer ptr);
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data);
 static void cancel (GtkButton* btn, gpointer ptr);
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void info (GtkButton* btn, gpointer ptr);
 static void install_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void install (GtkButton* btn, gpointer ptr);
 
@@ -188,7 +190,6 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
     }
 }
 
-
 static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
@@ -245,11 +246,16 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
 
                 g_free (buf);
                 buf = g_strdup_printf ("<b>%s</b>\n%s\nSize : %.*f MB", name, desc, dp, skb);
-                gtk_list_store_set (packages, &iter, 1, buf, -1);
+                gtk_list_store_set (packages, &iter, 1, buf, 9, pk_details_get_description (item), -1);
                 g_free (buf);
+                g_free (name);
+                g_free (desc);
 
                 break;
             }
+            g_free (buf);
+            g_free (name);
+            g_free (desc);
             valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
         }
     }
@@ -263,6 +269,7 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     fpackages = gtk_tree_model_filter_new (GTK_TREE_MODEL (packages), NULL);
     gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fpackages), (GtkTreeModelFilterVisibleFunc) match_category, NULL, NULL);
     gtk_tree_view_set_model (GTK_TREE_VIEW (pack_tv), GTK_TREE_MODEL (fpackages));
+    category_selected (NULL, NULL);
 
     gtk_widget_destroy (GTK_WIDGET (msg_dlg));
     msg_dlg = NULL;
@@ -524,9 +531,25 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     return res;
 }
 
+static void package_selected (GtkTreeView *tv, gpointer ptr)
+{
+    GtkTreeModel *model;
+    GtkTreeSelection *sel;
+    GtkTreePath *path;
+    GList *rows;
+
+    model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
+    sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (pack_tv));
+    rows = gtk_tree_selection_get_selected_rows (sel, &model);
+    path = g_list_nth_data (rows, 0);
+    if (path) gtk_widget_set_sensitive (info_btn, TRUE);
+    else gtk_widget_set_sensitive (info_btn, FALSE);
+}
+
 static void category_selected (GtkTreeView *tv, gpointer ptr)
 {
     gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (fpackages));
+    package_selected (NULL, NULL);
 }
 
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data)
@@ -553,6 +576,36 @@ static void cancel (GtkButton* btn, gpointer ptr)
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     gtk_main_quit ();
+}
+
+static void info (GtkButton* btn, gpointer ptr)
+{
+    GtkTreeIter iter, citer;
+    GtkTreeModel *model, *cmodel;
+    GtkTreeSelection *sel;
+    GtkTreePath *path;
+    GList *rows;
+    gchar *str = NULL;
+
+    model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
+    sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (pack_tv));
+    rows = gtk_tree_selection_get_selected_rows (sel, &model);
+    path = g_list_nth_data (rows, 0);
+    if (path)
+    {
+        gtk_tree_model_get_iter (model, &iter, path);
+
+        cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
+        gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
+
+        gtk_tree_model_get (cmodel, &citer, 9, &str, -1);
+        if (!str) str = g_strdup ("No additional information available for this package.");
+        GtkWidget *dlg = gtk_message_dialog_new (GTK_WINDOW (main_dlg), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_OTHER, GTK_BUTTONS_OK, str);
+        gtk_window_set_type_hint (GTK_WINDOW (dlg), GDK_WINDOW_TYPE_HINT_MENU);
+        gtk_dialog_run (GTK_DIALOG (dlg));
+        gtk_widget_destroy (dlg);
+        g_free (str);
+    }
 }
 
 static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
@@ -655,10 +708,11 @@ int main (int argc, char *argv[])
     pack_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview2");
     cancel_btn = (GtkWidget *) gtk_builder_get_object (builder, "button1");
     install_btn = (GtkWidget *) gtk_builder_get_object (builder, "button2");
+    info_btn = (GtkWidget *) gtk_builder_get_object (builder, "button0");
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    packages = gtk_list_store_new (9, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT64);
+    packages = gtk_list_store_new (10, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT64, G_TYPE_STRING);
 
     // set up tree views
     crp = gtk_cell_renderer_pixbuf_new ();
@@ -683,7 +737,9 @@ int main (int argc, char *argv[])
     g_signal_connect (crb, "toggled", G_CALLBACK (install_toggled), NULL);
     g_signal_connect (cancel_btn, "clicked", G_CALLBACK (cancel), NULL);
     g_signal_connect (install_btn, "clicked", G_CALLBACK (install), NULL);
+    g_signal_connect (info_btn, "clicked", G_CALLBACK (info), NULL);
     g_signal_connect (main_dlg, "delete_event", G_CALLBACK (cancel), NULL);
+    g_signal_connect (pack_tv, "cursor-changed", G_CALLBACK (package_selected), NULL);
 
     gtk_window_set_default_size (GTK_WINDOW (main_dlg), 700, 400);
     gtk_widget_show_all (main_dlg);
