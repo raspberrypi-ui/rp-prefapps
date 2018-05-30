@@ -431,6 +431,7 @@ static gboolean read_data_file (gpointer data)
         gtk_list_store_append (GTK_LIST_STORE (categories), &cat_entry);
         icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "rpi", 32, 0, NULL);
         gtk_list_store_set (categories, &cat_entry, 0, icon, 1, "All Programs", -1);
+        if (icon) g_object_unref (icon);
         groups = g_key_file_get_groups (kf, NULL);
 
         while (*groups)
@@ -465,14 +466,16 @@ static gboolean read_data_file (gpointer data)
                 icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), cat_icon_name (cat), 32, 0, NULL);
                 gtk_list_store_append (categories, &cat_entry);
                 gtk_list_store_set (categories, &cat_entry, 0, icon, 1, cat, -1);
+                if (icon) g_object_unref (icon);
             }
 
             // create the entry for the packages list
             icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
+            if (!icon) icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, 0, NULL);
             gtk_list_store_append (packages, &entry);
             gtk_list_store_set (packages, &entry, 0, icon, 2, FALSE, 3, cat, 4, pnames[pcount - 1], 5, "none", 6, name, 7, desc, -1);
-
             if (icon) g_object_unref (icon);
+
             g_free (cat);
             g_free (name);
             g_free (desc);
