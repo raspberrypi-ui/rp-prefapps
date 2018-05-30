@@ -1,7 +1,15 @@
 uidir = $(datadir)/rp_prefapps
 
 ui_in_files = 	rp_prefapps.ui \
-				prefapps.conf
+				prefapps.conf \
+				bluej.png \
+				claws-mail.png \
+				greenfoot.png \
+				mu.png \
+				node-red-icon.svg \
+				sonic-pi.png \
+				vncviewer48x48.png \
+				wolfram-mathematica.png
 	
 ui_DATA = $(ui_in_files)
 
