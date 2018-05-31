@@ -189,6 +189,18 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
     }
 }
 
+static unsigned long get_size (const char *pkg_id)
+{
+    char *pkg, *ver, *buf;
+    pkg = g_strdup (pkg_id);
+    strtok (pkg, ";");
+    ver = strtok (NULL, ";");
+    buf = g_strdup_printf ("apt-cache show %s=%s | grep ^Size |  cut -d ' ' -f 2", pkg, ver);
+    system (buf);
+    g_free (buf);
+    g_free (pkg);
+}
+
 static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
@@ -244,8 +256,8 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
                 else dp = 2;
 
                 g_free (buf);
-                buf = g_strdup_printf (_("<b>%s</b>\n%s\nSize : %.*f MB"), name, desc, dp, skb);
-                gtk_list_store_set (packages, &iter, 1, buf, 9, pk_details_get_description (item), -1);
+                buf = g_strdup_printf (_("<b>%s</b>\n%s\n%s size : %.*f MB"), name, desc, strstr (package_id, ";installed:") ? _("Installed") : _("Download"), dp, skb);
+                gtk_list_store_set (packages, &iter, 1, buf, 9, pk_details_get_description (item), 10, pk_details_get_summary (item), -1);
                 g_free (buf);
                 g_free (name);
                 g_free (desc);
@@ -584,7 +596,7 @@ static void info (GtkButton* btn, gpointer ptr)
     GtkTreeSelection *sel;
     GList *rows;
     GtkWidget *dlg;
-    gchar *str = NULL;
+    gchar *sum = NULL, *desc = NULL, *name = NULL;
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (pack_tv));
@@ -596,13 +608,16 @@ static void info (GtkButton* btn, gpointer ptr)
         cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
 
-        gtk_tree_model_get (cmodel, &citer, 9, &str, -1);
-        if (!str) str = g_strdup (_("No additional information available for this package."));
-        dlg = gtk_message_dialog_new (GTK_WINDOW (main_dlg), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_OTHER, GTK_BUTTONS_OK, "%s", str);
+        gtk_tree_model_get (cmodel, &citer, 6, &name, 9, &desc, 10, &sum, -1);
+        if (!desc) desc = g_strdup (_("No additional information available for this package."));
+        dlg = gtk_message_dialog_new (GTK_WINDOW (main_dlg), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_OTHER, GTK_BUTTONS_OK, "%s\n\n%s", sum, desc);
+        gtk_window_set_title (GTK_WINDOW (dlg), name);
         gtk_window_set_type_hint (GTK_WINDOW (dlg), GDK_WINDOW_TYPE_HINT_MENU);
         gtk_dialog_run (GTK_DIALOG (dlg));
         gtk_widget_destroy (dlg);
-        g_free (str);
+        g_free (sum);
+        g_free (desc);
+        g_free (name);
     }
 }
 
@@ -711,7 +726,7 @@ int main (int argc, char *argv[])
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    packages = gtk_list_store_new (10, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT64, G_TYPE_STRING);
+    packages = gtk_list_store_new (11, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_UINT64, G_TYPE_STRING, G_TYPE_STRING);
 
     // set up tree views
     crp = gtk_cell_renderer_pixbuf_new ();
