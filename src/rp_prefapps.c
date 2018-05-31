@@ -447,14 +447,20 @@ static gboolean read_data_file (gpointer data)
     GKeyFile *kf;
     PkTask *task;
     gchar **groups;
-    gchar *buf, *cat, *name, *desc, *iname;
+    gchar *buf, *cat, *name, *desc, *iname, *loc;
     gboolean new;
     gchar *pname;
     int pcount = 0;
 
+    loc = setlocale (0, "");
+    strtok (loc, "_. ");
+    buf = g_strdup_printf ("%s/prefapps_%s.conf", PACKAGE_DATA_DIR, loc);
+
     kf = g_key_file_new ();
-    if (g_key_file_load_from_file (kf, PACKAGE_DATA_DIR "/prefapps.conf", G_KEY_FILE_NONE, NULL))
+    if (g_key_file_load_from_file (kf, buf, G_KEY_FILE_NONE, NULL) ||
+        g_key_file_load_from_file (kf, PACKAGE_DATA_DIR "/prefapps.conf", G_KEY_FILE_NONE, NULL))
     {
+        g_free (buf);
         gtk_list_store_append (GTK_LIST_STORE (categories), &cat_entry);
         icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "rpi", 32, 0, NULL);
         gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, _("All Programs"), -1);
@@ -514,6 +520,7 @@ static gboolean read_data_file (gpointer data)
     else
     {
         // handle no data file here...
+        g_free (buf);
         message (_("Unable to open package data file"), 1 , -1);
         return FALSE;
     }
