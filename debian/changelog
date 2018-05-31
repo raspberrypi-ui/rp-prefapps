@@ -1,0 +1,5 @@
+rp_prefapps (0.1) stretch; urgency=medium
+
+  * Initial release
+
+ -- Simon Long <simon@raspberrypi.org>  Thu, 31 May 2018 07:33:11 +0100

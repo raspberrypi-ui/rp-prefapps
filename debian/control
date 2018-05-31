@@ -1,0 +1,16 @@
+Source: rp_prefapps
+Section: admin
+Priority: optional
+Maintainer: Simon Long <simon@raspberrypi.org>
+Build-Depends: debhelper (>= 9), dh-autoreconf, libglib2.0-dev, libgtk2.0-dev,
+ libx11-dev, intltool, libpackagekit-glib2-dev
+Standards-Version: 3.9.6
+Homepage: https://github.com/raspberrypi-ui/rp_prefapps
+Vcs-Git: git://git@github.com:raspberrypi-ui/rp_prefapps.git
+Vcs-Browser: https://github.com/raspberrypi-ui/rp_prefapps
+
+Package: rp_prefapps
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}, packagekit
+Description: Raspberry Pi recommended applications
+ Installer for selected packages recommended for Raspberry Pi users
