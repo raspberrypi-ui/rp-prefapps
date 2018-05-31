@@ -244,7 +244,7 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
                 else dp = 2;
 
                 g_free (buf);
-                buf = g_strdup_printf ("<b>%s</b>\n%s\nSize : %.*f MB", name, desc, dp, skb);
+                buf = g_strdup_printf (_("<b>%s</b>\n%s\nSize : %.*f MB"), name, desc, dp, skb);
                 gtk_list_store_set (packages, &iter, 1, buf, 9, pk_details_get_description (item), -1);
                 g_free (buf);
                 g_free (name);
@@ -510,7 +510,7 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     {
         gtk_tree_model_get (cmodel, &citer, 1, &cat, -1);
     }
-    else cat = g_strdup ("All Programs");
+    else cat = g_strdup (_("All Programs"));
 
     // first make sure the package has a package ID - ignore if not
     gtk_tree_model_get (model, iter, 5, &str, -1);
@@ -518,7 +518,7 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     else
     {
         // check that category matches
-        if (!g_strcmp0 (cat, "All Programs")) res = TRUE;
+        if (!g_strcmp0 (cat, _("All Programs"))) res = TRUE;
         else
         {
             g_free (str);
@@ -583,6 +583,7 @@ static void info (GtkButton* btn, gpointer ptr)
     GtkTreeModel *model, *cmodel;
     GtkTreeSelection *sel;
     GList *rows;
+    GtkWidget *dlg;
     gchar *str = NULL;
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
@@ -596,8 +597,8 @@ static void info (GtkButton* btn, gpointer ptr)
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
 
         gtk_tree_model_get (cmodel, &citer, 9, &str, -1);
-        if (!str) str = g_strdup ("No additional information available for this package.");
-        GtkWidget *dlg = gtk_message_dialog_new (GTK_WINDOW (main_dlg), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_OTHER, GTK_BUTTONS_OK, str);
+        if (!str) str = g_strdup (_("No additional information available for this package."));
+        dlg = gtk_message_dialog_new (GTK_WINDOW (main_dlg), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_OTHER, GTK_BUTTONS_OK, "%s", str);
         gtk_window_set_type_hint (GTK_WINDOW (dlg), GDK_WINDOW_TYPE_HINT_MENU);
         gtk_dialog_run (GTK_DIALOG (dlg));
         gtk_widget_destroy (dlg);
