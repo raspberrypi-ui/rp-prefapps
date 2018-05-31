@@ -20,6 +20,23 @@
 
 #include <libintl.h>
 
+/* Columns in packages and categories list stores */
+
+#define PACK_ICON           0
+#define PACK_CELL_TEXT      1
+#define PACK_INSTALLED      2
+#define PACK_CATEGORY       3
+#define PACK_PACKAGE_NAME   4
+#define PACK_PACKAGE_ID     5
+#define PACK_CELL_NAME      6
+#define PACK_CELL_DESC      7
+#define PACK_SIZE           8
+#define PACK_DESCRIPTION    9
+#define PACK_SUMMARY        10
+
+#define CAT_ICON            0
+#define CAT_NAME            1
+
 /* Controls */
 
 static GtkWidget *main_dlg, *msg_dlg, *msg_msg, *msg_pb, *msg_btn;;
@@ -119,7 +136,7 @@ static char *name_from_id (const gchar *id)
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
     while (valid)
     {
-        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 5, &tid, 6, &name, -1);
+        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_ID, &tid, PACK_CELL_NAME, &name, -1);
         if (!g_strcmp0 (id, tid)) return name;
         valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
     }
@@ -244,11 +261,11 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
         valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
         while (valid)
         {
-            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 4, &buf, 6, &name, 7, &desc, -1);
+            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_NAME, &buf, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, -1);
             if (!strncmp (buf, package_id, strlen (buf)))
             {
                 siz = pk_details_get_size (item);
-                gtk_list_store_set (packages, &iter, 8, siz, -1);
+                gtk_list_store_set (packages, &iter, PACK_SIZE, siz, -1);
                 skb = siz;
                 skb /= 1048576.0;
                 if (skb >= 100) dp = 0;
@@ -257,7 +274,7 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
 
                 g_free (buf);
                 buf = g_strdup_printf (_("<b>%s</b>\n%s\n%s size : %.*f MB"), name, desc, strstr (package_id, ";installed:") ? _("Installed") : _("Download"), dp, skb);
-                gtk_list_store_set (packages, &iter, 1, buf, 9, pk_details_get_description (item), 10, pk_details_get_summary (item), -1);
+                gtk_list_store_set (packages, &iter, PACK_CELL_TEXT, buf, PACK_DESCRIPTION, pk_details_get_description (item), PACK_SUMMARY, pk_details_get_summary (item), -1);
                 g_free (buf);
                 g_free (name);
                 g_free (desc);
@@ -327,15 +344,15 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
         valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
         while (valid)
         {
-            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 2, &inst, 4, &buf, -1);
+            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &inst, PACK_PACKAGE_NAME, &buf, -1);
 
             // only update the package id string if no installed version of this package has already been found...
             if (!strncmp (buf, package_id, strlen (buf)) && !inst)
             {
-                gtk_list_store_set (packages, &iter, 5, package_id, -1);
+                gtk_list_store_set (packages, &iter, PACK_PACKAGE_ID, package_id, -1);
 
                 // never toggle installed flag from installed to uninstalled - only one version is ever installed...
-                if (info == PK_INFO_ENUM_INSTALLED) gtk_list_store_set (packages, &iter, 2, TRUE, -1);
+                if (info == PK_INFO_ENUM_INSTALLED) gtk_list_store_set (packages, &iter, PACK_INSTALLED, TRUE, -1);
                 break;
             }
             valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
@@ -381,43 +398,43 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
 
 static const char *cat_icon_name (char *category)
 {
-    if (!g_strcmp0 (category, "Programming"))
+    if (!g_strcmp0 (category, _("Programming")))
         return "applications-development";
 
-    if (!g_strcmp0 (category, "Office"))
+    if (!g_strcmp0 (category, _("Office")))
         return "applications-office";
 
-    if (!g_strcmp0 (category, "Internet"))
+    if (!g_strcmp0 (category, _("Internet")))
         return "applications-internet";
 
-    if (!g_strcmp0 (category, "Games"))
+    if (!g_strcmp0 (category, _("Games")))
         return "applications-games";
 
-    if (!g_strcmp0 (category, "Other"))
+    if (!g_strcmp0 (category, _("Other")))
         return "applications-other";
 
-    if (!g_strcmp0 (category, "Accessories"))
+    if (!g_strcmp0 (category, _("Accessories")))
         return "applications-accessories";
 
-    if (!g_strcmp0 (category, "Sound & Video"))
+    if (!g_strcmp0 (category, _("Sound & Video")))
         return "applications-multimedia";
 
-    if (!g_strcmp0 (category, "System Tools"))
+    if (!g_strcmp0 (category, _("System Tools")))
         return "applications-system";
 
-    if (!g_strcmp0 (category, "Engineering"))
+    if (!g_strcmp0 (category, _("Engineering")))
         return "applications-engineering";
 
-    if (!g_strcmp0 (category, "Education"))
+    if (!g_strcmp0 (category, _("Education")))
         return "applications-science";
 
-    if (!g_strcmp0 (category, "Graphics"))
+    if (!g_strcmp0 (category, _("Graphics")))
         return "applications-graphics";
 
-    if (!g_strcmp0 (category, "Science & Maths"))
+    if (!g_strcmp0 (category, _("Science & Maths")))
         return "applications-science";
 
-    if (!g_strcmp0 (category, "Preferences"))
+    if (!g_strcmp0 (category, _("Preferences")))
         return "preferences-desktop";
 
     return NULL;
@@ -440,7 +457,7 @@ static gboolean read_data_file (gpointer data)
     {
         gtk_list_store_append (GTK_LIST_STORE (categories), &cat_entry);
         icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "rpi", 32, 0, NULL);
-        gtk_list_store_set (categories, &cat_entry, 0, icon, 1, "All Programs", -1);
+        gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, _("All Programs"), -1);
         if (icon) g_object_unref (icon);
         groups = g_key_file_get_groups (kf, NULL);
 
@@ -461,7 +478,7 @@ static gboolean read_data_file (gpointer data)
             gtk_tree_model_get_iter_first (GTK_TREE_MODEL (categories), &cat_entry);
             while (gtk_tree_model_iter_next (GTK_TREE_MODEL (categories), &cat_entry))
             {
-                gtk_tree_model_get (GTK_TREE_MODEL (categories), &cat_entry, 1, &buf, -1);
+                gtk_tree_model_get (GTK_TREE_MODEL (categories), &cat_entry, CAT_NAME, &buf, -1);
                 if (!g_strcmp0 (cat, buf))
                 {
                     new = FALSE;
@@ -475,7 +492,7 @@ static gboolean read_data_file (gpointer data)
             {
                 icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), cat_icon_name (cat), 32, 0, NULL);
                 gtk_list_store_append (categories, &cat_entry);
-                gtk_list_store_set (categories, &cat_entry, 0, icon, 1, cat, -1);
+                gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, cat, -1);
                 if (icon) g_object_unref (icon);
             }
 
@@ -483,7 +500,7 @@ static gboolean read_data_file (gpointer data)
             icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
             if (!icon) icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, 0, NULL);
             gtk_list_store_append (packages, &entry);
-            gtk_list_store_set (packages, &entry, 0, icon, 2, FALSE, 3, cat, 4, pnames[pcount - 1], 5, "none", 6, name, 7, desc, -1);
+            gtk_list_store_set (packages, &entry, PACK_ICON, icon, PACK_INSTALLED, FALSE, PACK_CATEGORY, cat, PACK_PACKAGE_NAME, pnames[pcount - 1], PACK_PACKAGE_ID, "none", PACK_CELL_NAME, name, PACK_CELL_DESC, desc, -1);
             if (icon) g_object_unref (icon);
 
             g_free (cat);
@@ -520,12 +537,12 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv));
     if (sel && gtk_tree_selection_get_selected (sel, &cmodel, &citer))
     {
-        gtk_tree_model_get (cmodel, &citer, 1, &cat, -1);
+        gtk_tree_model_get (cmodel, &citer, CAT_NAME, &cat, -1);
     }
     else cat = g_strdup (_("All Programs"));
 
     // first make sure the package has a package ID - ignore if not
-    gtk_tree_model_get (model, iter, 5, &str, -1);
+    gtk_tree_model_get (model, iter, PACK_PACKAGE_ID, &str, -1);
     if (!g_strcmp0 (str, "none")) res = FALSE;
     else
     {
@@ -534,7 +551,7 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
         else
         {
             g_free (str);
-            gtk_tree_model_get (model, iter, 3, &str, -1);
+            gtk_tree_model_get (model, iter, PACK_CATEGORY, &str, -1);
             if (!g_strcmp0 (str, cat)) res = TRUE;
             else res = FALSE;
         }
@@ -575,8 +592,8 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
     gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
 
-    gtk_tree_model_get (cmodel, &citer, 2, &val, -1);
-    gtk_list_store_set (GTK_LIST_STORE (cmodel), &citer, 2, 1 - val, -1);
+    gtk_tree_model_get (cmodel, &citer, PACK_INSTALLED, &val, -1);
+    gtk_list_store_set (GTK_LIST_STORE (cmodel), &citer, PACK_INSTALLED, 1 - val, -1);
 }
 
 static void cancel (GtkButton* btn, gpointer ptr)
@@ -608,7 +625,7 @@ static void info (GtkButton* btn, gpointer ptr)
         cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
 
-        gtk_tree_model_get (cmodel, &citer, 6, &name, 9, &desc, 10, &sum, -1);
+        gtk_tree_model_get (cmodel, &citer, PACK_CELL_NAME, &name, PACK_DESCRIPTION, &desc, PACK_SUMMARY, &sum, -1);
         if (!desc) desc = g_strdup (_("No additional information available for this package."));
         dlg = gtk_message_dialog_new (GTK_WINDOW (main_dlg), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_OTHER, GTK_BUTTONS_OK, "%s\n\n%s", sum, desc);
         gtk_window_set_title (GTK_WINDOW (dlg), name);
@@ -649,7 +666,7 @@ static void install (GtkButton* btn, gpointer ptr)
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
     while (valid)
     {
-        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, 2, &state, 5, &id, -1);
+        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &state, PACK_PACKAGE_ID, &id, -1);
         if (!strstr (id, ";installed:"))
         {
             if (state)
@@ -733,19 +750,22 @@ int main (int argc, char *argv[])
     crt = gtk_cell_renderer_text_new ();
     crb = gtk_cell_renderer_toggle_new ();
 
-    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 0, "Icon", crp, "pixbuf", 0, NULL);
-    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 1, "Category", crt, "text", 1, NULL);
-    gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (cat_tv), FALSE);
-    gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (categories));
+    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 0, "Icon", crp, "pixbuf", CAT_ICON, NULL);
+    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 1, "Category", crt, "text", CAT_NAME, NULL);
 
-    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 0, "", crp, "pixbuf", 0, NULL);
-    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 1, "Description", crt, "markup", 1, NULL);
-    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 2, "Install", crb, "active", 2, NULL);
+    gtk_widget_set_size_request (cat_tv, 160, -1);
+    gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (cat_tv), FALSE);
+
+    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 0, "", crp, "pixbuf", PACK_ICON, NULL);
+    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 1, "Description", crt, "markup", PACK_CELL_TEXT, NULL);
+    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 2, "Install", crb, "active", PACK_INSTALLED, NULL);
 
     gtk_tree_view_column_set_sizing (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 0), GTK_TREE_VIEW_COLUMN_FIXED);
     gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 0), 45);
     gtk_tree_view_column_set_expand (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 1), TRUE);
-    g_object_set (crt, "wrap-mode", PANGO_WRAP_WORD, "wrap-width", 400, NULL);
+    g_object_set (crt, "wrap-mode", PANGO_WRAP_WORD, "wrap-width", 320, NULL);
+    gtk_tree_view_column_set_sizing (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), GTK_TREE_VIEW_COLUMN_FIXED);
+    gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), 45);
 
     g_signal_connect (cat_tv, "cursor-changed", G_CALLBACK (category_selected), NULL);
     g_signal_connect (crb, "toggled", G_CALLBACK (install_toggled), NULL);
@@ -755,7 +775,7 @@ int main (int argc, char *argv[])
     g_signal_connect (main_dlg, "delete_event", G_CALLBACK (cancel), NULL);
     g_signal_connect (pack_tv, "cursor-changed", G_CALLBACK (package_selected), NULL);
 
-    gtk_window_set_default_size (GTK_WINDOW (main_dlg), 700, 400);
+    gtk_window_set_default_size (GTK_WINDOW (main_dlg), 640, 400);
     gtk_widget_show_all (main_dlg);
 
     // load the data file and check with backend
