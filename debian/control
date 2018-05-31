@@ -1,4 +1,4 @@
-Source: rp_prefapps
+Source: rp-prefapps
 Section: admin
 Priority: optional
 Maintainer: Simon Long <simon@raspberrypi.org>
@@ -9,7 +9,7 @@ Homepage: https://github.com/raspberrypi-ui/rp_prefapps
 Vcs-Git: git://git@github.com:raspberrypi-ui/rp_prefapps.git
 Vcs-Browser: https://github.com/raspberrypi-ui/rp_prefapps
 
-Package: rp_prefapps
+Package: rp-prefapps
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, packagekit
 Description: Raspberry Pi recommended applications

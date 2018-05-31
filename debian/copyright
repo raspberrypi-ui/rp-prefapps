@@ -1,5 +1,5 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: rp_prefapps
+Upstream-Name: rp-prefapps
 Source: https://github.com/raspberrypi-ui/rp_prefapps
 
 Files: *
