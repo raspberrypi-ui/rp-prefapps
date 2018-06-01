@@ -641,7 +641,8 @@ static void info (GtkButton* btn, gpointer ptr)
     GtkTreeModel *model, *cmodel;
     GtkTreeSelection *sel;
     GList *rows;
-    GtkWidget *dlg;
+    GtkWidget *dlg, *img;
+    GdkPixbuf *pix;
     gchar *sum = NULL, *desc = NULL, *name = NULL;
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
@@ -654,11 +655,14 @@ static void info (GtkButton* btn, gpointer ptr)
         cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
 
-        gtk_tree_model_get (cmodel, &citer, PACK_CELL_NAME, &name, PACK_DESCRIPTION, &desc, PACK_SUMMARY, &sum, -1);
+        gtk_tree_model_get (cmodel, &citer, PACK_CELL_NAME, &name, PACK_DESCRIPTION, &desc, PACK_SUMMARY, &sum, PACK_ICON, &pix, -1);
         if (!desc) desc = g_strdup (_("No additional information available for this package."));
         dlg = gtk_message_dialog_new (GTK_WINDOW (main_dlg), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_OTHER, GTK_BUTTONS_OK, "%s\n\n%s", sum, desc);
+        img = gtk_image_new_from_pixbuf (pix);
+        gtk_message_dialog_set_image (GTK_MESSAGE_DIALOG (dlg), img);
         gtk_window_set_title (GTK_WINDOW (dlg), name);
         gtk_window_set_type_hint (GTK_WINDOW (dlg), GDK_WINDOW_TYPE_HINT_MENU);
+        gtk_widget_show_all (dlg);
         gtk_dialog_run (GTK_DIALOG (dlg));
         gtk_widget_destroy (dlg);
         g_free (sum);
