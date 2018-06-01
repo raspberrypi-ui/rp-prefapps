@@ -593,6 +593,10 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     GtkTreeIter iter, citer;
     GtkTreeModel *model, *cmodel;
     gboolean val;
+    gchar *name, *desc, *id, *buf, *state;
+    guint64 siz;
+    float skb;
+    int dp;
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     gtk_tree_model_get_iter_from_string (model, &iter, path);
@@ -600,8 +604,25 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
     gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
 
-    gtk_tree_model_get (cmodel, &citer, PACK_INSTALLED, &val, -1);
-    gtk_list_store_set (GTK_LIST_STORE (cmodel), &citer, PACK_INSTALLED, 1 - val, -1);
+    gtk_tree_model_get (cmodel, &citer, PACK_INSTALLED, &val, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, PACK_SIZE, &siz, PACK_PACKAGE_ID, &id, -1);
+
+    if (!strstr (id, ";installed:") && !val) state = g_strdup ("   <b>Will be installed</b>");
+    else if (strstr (id, ";installed:") && val) state = g_strdup ("   <b>Will be removed</b>");
+    else state = g_strdup ("");
+
+    skb = siz;
+    skb /= 1048576.0;
+    if (skb >= 100) dp = 0;
+    else if (skb >= 10) dp = 1;
+    else dp = 2;
+
+    buf = g_strdup_printf (_("<b>%s</b>\n%s\n%s size : %.*f MB%s"), name, desc, strstr (id, ";installed:") ? _("Installed") : _("Download"), dp, skb, state);
+    gtk_list_store_set (GTK_LIST_STORE (cmodel), &citer, PACK_INSTALLED, 1 - val, PACK_CELL_TEXT, buf, -1);
+    g_free (buf);
+    g_free (state);
+    g_free (name);
+    g_free (desc);
+    g_free (id);
 }
 
 static void cancel (GtkButton* btn, gpointer ptr)
