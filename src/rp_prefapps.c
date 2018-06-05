@@ -300,6 +300,9 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     gtk_tree_view_set_model (GTK_TREE_VIEW (pack_tv), GTK_TREE_MODEL (fpackages));
     category_selected (NULL, NULL);
 
+    gtk_widget_set_sensitive (cancel_btn, TRUE);
+    gtk_widget_set_sensitive (install_btn, TRUE);
+
     gtk_widget_destroy (GTK_WIDGET (msg_dlg));
     msg_dlg = NULL;
 }
@@ -693,6 +696,10 @@ static void install (GtkButton* btn, gpointer ptr)
     gboolean valid, state;
     gchar *id;
 
+    gtk_widget_set_sensitive (info_btn, FALSE);
+    gtk_widget_set_sensitive (cancel_btn, FALSE);
+    gtk_widget_set_sensitive (install_btn, FALSE);
+
     inst = 0;
     uninst = 0;
     pinst = malloc (sizeof (gchar *));
@@ -811,6 +818,10 @@ int main (int argc, char *argv[])
     g_signal_connect (info_btn, "clicked", G_CALLBACK (info), NULL);
     g_signal_connect (main_dlg, "delete_event", G_CALLBACK (cancel), NULL);
     g_signal_connect (pack_tv, "cursor-changed", G_CALLBACK (package_selected), NULL);
+
+    gtk_widget_set_sensitive (info_btn, FALSE);
+    gtk_widget_set_sensitive (cancel_btn, FALSE);
+    gtk_widget_set_sensitive (install_btn, FALSE);
 
     gtk_window_set_default_size (GTK_WINDOW (main_dlg), 640, 400);
     gtk_widget_show_all (main_dlg);
