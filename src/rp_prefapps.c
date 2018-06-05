@@ -771,12 +771,12 @@ int main (int argc, char *argv[])
     builder = gtk_builder_new ();
     gtk_builder_add_from_file (builder, PACKAGE_DATA_DIR "/rp_prefapps.ui", NULL);
 
-    main_dlg = (GtkWidget *) gtk_builder_get_object (builder, "window1");
-    cat_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview1");
-    pack_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview2");
-    cancel_btn = (GtkWidget *) gtk_builder_get_object (builder, "button1");
-    install_btn = (GtkWidget *) gtk_builder_get_object (builder, "button2");
-    info_btn = (GtkWidget *) gtk_builder_get_object (builder, "button0");
+    main_dlg = (GtkWidget *) gtk_builder_get_object (builder, "main_window");
+    cat_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview_cat");
+    pack_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview_prog");
+    info_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_info");
+    cancel_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_cancel");
+    install_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_ok");
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
