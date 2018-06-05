@@ -73,6 +73,7 @@ static gboolean ok_clicked (GtkButton *button, gpointer data)
 {
     gtk_widget_destroy (GTK_WIDGET (msg_dlg));
     msg_dlg = NULL;
+    gtk_main_quit ();
     return FALSE;
 }
 
@@ -632,7 +633,10 @@ static void cancel (GtkButton* btn, gpointer ptr)
 
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
-    gtk_main_quit ();
+    if (inst)
+        message (_("Installation and removal complete"), 1, -1);
+    else
+        message (_("Removal complete"), 1, -1);
 }
 
 static void info (GtkButton* btn, gpointer ptr)
@@ -679,7 +683,7 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 
         pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
     }
-    else gtk_main_quit ();
+    else message (_("Installation complete"), 1, -1);
 }
 
 static void install (GtkButton* btn, gpointer ptr)
