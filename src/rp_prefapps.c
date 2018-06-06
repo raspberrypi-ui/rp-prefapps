@@ -205,13 +205,9 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
             case PK_ROLE_ENUM_INSTALL_PACKAGES :    if (status == PK_STATUS_ENUM_DOWNLOAD || status == PK_STATUS_ENUM_INSTALL)
                                                     {
                                                         name = name_from_id (pk_progress_get_package_id (progress));
-                                                        if (name)
-                                                        {
-                                                            buf = g_strdup_printf (_("Installing %s - please wait..."), name);
-                                                            message (buf, 0, pk_progress_get_percentage (progress));
-                                                        }
-                                                        else
-                                                            message (_("Installing packages - please wait..."), 0, pk_progress_get_percentage (progress));
+                                                        buf = g_strdup_printf (_("%s %s - please wait..."), status == PK_STATUS_ENUM_INSTALL ? _("Installing") : _("Downloading"),
+                                                            name ? name : _("packages"));
+                                                        message (buf, 0, pk_progress_get_percentage (progress));
                                                     }
                                                     else
                                                         gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
@@ -671,7 +667,7 @@ static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
     results = pk_task_generic_finish (task, res, &error);
     if (error != NULL)
     {
-        buf = g_strdup_printf (_("Error installing packages - %s"), error->message);
+        buf = g_strdup_printf (_("Error removing packages - %s"), error->message);
         message (buf, 1, -1);
         g_free (buf);
         return;
@@ -680,7 +676,7 @@ static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
     pkerror = pk_results_get_error_code (results);
     if (pkerror != NULL)
     {
-        buf = g_strdup_printf (_("Error installing packages - %s"), pk_error_get_details (pkerror));
+        buf = g_strdup_printf (_("Error removing packages - %s"), pk_error_get_details (pkerror));
         message (buf, 1, -1);
         g_free (buf);
         return;
