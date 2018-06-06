@@ -663,6 +663,29 @@ static void cancel (GtkButton* btn, gpointer ptr)
 
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
+    PkResults *results;
+    PkError *pkerror;
+    GError *error = NULL;
+    gchar *buf;
+
+    results = pk_task_generic_finish (task, res, &error);
+    if (error != NULL)
+    {
+        buf = g_strdup_printf (_("Error installing packages - %s"), error->message);
+        message (buf, 1, -1);
+        g_free (buf);
+        return;
+    }
+
+    pkerror = pk_results_get_error_code (results);
+    if (pkerror != NULL)
+    {
+        buf = g_strdup_printf (_("Error installing packages - %s"), pk_error_get_details (pkerror));
+        message (buf, 1, -1);
+        g_free (buf);
+        return;
+    }
+
     if (inst)
         message (_("Installation and removal complete"), 1, -1);
     else
@@ -707,6 +730,29 @@ static void info (GtkButton* btn, gpointer ptr)
 
 static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
+    PkResults *results;
+    PkError *pkerror;
+    GError *error = NULL;
+    gchar *buf;
+
+    results = pk_task_generic_finish (task, res, &error);
+    if (error != NULL)
+    {
+        buf = g_strdup_printf (_("Error installing packages - %s"), error->message);
+        message (buf, 1, -1);
+        g_free (buf);
+        return;
+    }
+
+    pkerror = pk_results_get_error_code (results);
+    if (pkerror != NULL)
+    {
+        buf = g_strdup_printf (_("Error installing packages - %s"), pk_error_get_details (pkerror));
+        message (buf, 1, -1);
+        g_free (buf);
+        return;
+    }
+
     if (uninst)
     {
         message (_("Removing packages - please wait..."), 0 , -1);
