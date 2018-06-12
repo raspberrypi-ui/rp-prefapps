@@ -363,12 +363,14 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
             valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
             g_free (buf);
         }
+        g_free (package_id);
     }
 
     message (_("Reading package details - please wait..."), 0 , -1);
 
     sack = pk_results_get_package_sack (results);
     pk_client_get_details_async (PK_CLIENT (task), pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
+    g_object_unref (sack);
 }
 
 static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc)
@@ -409,9 +411,7 @@ static void update_done (PkTask *task, GAsyncResult *res, gpointer data)
 static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
-    PkPackage *item;
     PkPackageSack *sack;
-    gchar **pkg;
 
     results = error_handler (task, res, "finding packages");
     if (!results) return;
@@ -419,9 +419,7 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
     message (_("Updating application - please wait..."), 0 , -1);
 
     sack = pk_results_get_package_sack (results);
-    pkg = pk_package_sack_get_ids (sack);
-    pk_task_update_packages_async (task, pkg, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
-    g_strfreev (pkg);
+    pk_task_update_packages_async (task, pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
     g_object_unref (sack);
 }
 
