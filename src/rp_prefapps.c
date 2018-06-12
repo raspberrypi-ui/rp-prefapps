@@ -822,9 +822,7 @@ static void info (GtkButton* btn, gpointer ptr)
 int main (int argc, char *argv[])
 {
     GtkBuilder *builder;
-    GtkWidget *wid;
     GtkCellRenderer *crp, *crt, *crb;
-    int res;
 
 #ifdef ENABLE_NLS
     setlocale (LC_ALL, "");
