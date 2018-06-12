@@ -66,100 +66,49 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Controls */
 
-static GtkWidget *main_dlg, *msg_dlg, *msg_msg, *msg_pb, *msg_btn;;
-static GtkWidget *cat_tv, *pack_tv;
-static GtkWidget *cancel_btn, *install_btn, *info_btn;
+static GtkWidget *main_dlg, *cat_tv, *pack_tv, *info_btn, *cancel_btn, *install_btn;
+static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn;
+
+/* Data stores for tree views */
 
 GtkListStore *categories, *packages;
 GtkTreeModel *fpackages;
 
-guint inst, uninst;
-gchar **pnames, **pinst, **puninst;
+/* Data stores and counters for packages to install and remove */
 
-static gboolean ok_clicked (GtkButton *button, gpointer data);
-static void message (char *msg, int wait, int prog);
+guint n_inst, n_uninst;
+gchar **pinst, **puninst;
+
+/*----------------------------------------------------------------------------*/
+/* Prototypes                                                                 */
+/*----------------------------------------------------------------------------*/
+
 static char *name_from_id (const gchar *id);
 static void progress (PkProgress *progress, PkProgressType *type, gpointer data);
-static void details_done (PkTask *task, GAsyncResult *res, gpointer data);
-static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
-static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data);
 static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc);
-static void update_done (PkTask *task, GAsyncResult *res, gpointer data);
-static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data);
-static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
 static gboolean update_self (gpointer data);
-static const char *cat_icon_name (char *category);
+static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void update_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void read_data_file (PkTask *task);
+static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void details_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void install (GtkButton* btn, gpointer ptr);
+static void install_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void remove_done (PkTask *task, GAsyncResult *res, gpointer data);
+static gboolean ok_clicked (GtkButton *button, gpointer data);
+static void message (char *msg, int wait, int prog);
+static const char *cat_icon_name (char *category);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 static void package_selected (GtkTreeView *tv, gpointer ptr);
 static void category_selected (GtkTreeView *tv, gpointer ptr);
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data);
 static void cancel (GtkButton* btn, gpointer ptr);
-static void remove_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void info (GtkButton* btn, gpointer ptr);
-static void install_done (PkTask *task, GAsyncResult *res, gpointer data);
-static void install (GtkButton* btn, gpointer ptr);
 
-
-static gboolean ok_clicked (GtkButton *button, gpointer data)
-{
-    gtk_widget_destroy (GTK_WIDGET (msg_dlg));
-    msg_dlg = NULL;
-    gtk_main_quit ();
-    return FALSE;
-}
-
-static void message (char *msg, int wait, int prog)
-{
-    if (!msg_dlg)
-    {
-        GtkBuilder *builder;
-        GtkWidget *wid;
-        GdkColor col;
-
-        builder = gtk_builder_new ();
-        gtk_builder_add_from_file (builder, PACKAGE_DATA_DIR "/rp_prefapps.ui", NULL);
-
-        msg_dlg = (GtkWidget *) gtk_builder_get_object (builder, "msg");
-        gtk_window_set_modal (GTK_WINDOW (msg_dlg), TRUE);
-        gtk_window_set_transient_for (GTK_WINDOW (msg_dlg), GTK_WINDOW (main_dlg));
-        gtk_window_set_position (GTK_WINDOW (msg_dlg), GTK_WIN_POS_CENTER_ON_PARENT);
-        gtk_window_set_destroy_with_parent (GTK_WINDOW (msg_dlg), TRUE);
-        gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 340, 100);
-
-        wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_eb");
-        gdk_color_parse ("#FFFFFF", &col);
-        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
-
-        msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "msg_lbl");
-        msg_pb = (GtkWidget *) gtk_builder_get_object (builder, "msg_pb");
-        msg_btn = (GtkWidget *) gtk_builder_get_object (builder, "msg_btn");
-
-        gtk_label_set_text (GTK_LABEL (msg_msg), msg);
-
-        gtk_widget_show_all (msg_dlg);
-        g_object_unref (builder);
-    }
-    else gtk_label_set_text (GTK_LABEL (msg_msg), msg);
-
-    if (wait)
-    {
-        g_signal_connect (msg_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
-        gtk_widget_set_visible (msg_pb, FALSE);
-        gtk_widget_set_visible (msg_btn, TRUE);
-    }
-    else
-    {
-        gtk_widget_set_visible (msg_btn, FALSE);
-        gtk_widget_set_visible (msg_pb, TRUE);
-        if (prog == -1) gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-        else
-        {
-            float progress = prog / 100.0;
-            gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (msg_pb), progress);
-        }
-    }
-}
+/*----------------------------------------------------------------------------*/
+/* Helper functions for async operations                                      */
+/*----------------------------------------------------------------------------*/
 
 static char *name_from_id (const gchar *id)
 {
@@ -242,16 +191,219 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
     }
 }
 
-static unsigned long get_size (const char *pkg_id)
+static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc)
 {
-    char *pkg, *ver, *buf;
-    pkg = g_strdup (pkg_id);
-    strtok (pkg, ";");
-    ver = strtok (NULL, ";");
-    buf = g_strdup_printf ("apt-cache show %s=%s | grep ^Size |  cut -d ' ' -f 2", pkg, ver);
-    system (buf);
-    g_free (buf);
-    g_free (pkg);
+    PkResults *results;
+    PkError *pkerror;
+    GError *error = NULL;
+    gchar *buf;
+
+    results = pk_task_generic_finish (task, res, &error);
+    if (error != NULL)
+    {
+        buf = g_strdup_printf (_("Error %s - %s"), desc, error->message);
+        message (buf, 1, -1);
+        g_free (buf);
+        return NULL;
+    }
+
+    pkerror = pk_results_get_error_code (results);
+    if (pkerror != NULL)
+    {
+        buf = g_strdup_printf (_("Error %s- %s"), desc, pk_error_get_details (pkerror));
+        message (buf, 1, -1);
+        g_free (buf);
+        return NULL;
+    }
+
+    return results;
+}
+
+/*----------------------------------------------------------------------------*/
+/* Handlers for asynchronous initialisation sequence at start                 */
+/*----------------------------------------------------------------------------*/
+
+static gboolean update_self (gpointer data)
+{
+    PkTask *task;
+
+    message (_("Updating package data - please wait..."), 0 , -1);
+
+    task = pk_task_new ();
+    pk_client_refresh_cache_async (PK_CLIENT (task), TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) refresh_cache_done, NULL);
+    return FALSE;
+}
+
+static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    gchar *pkg[2] = { "rp-prefapps", NULL };
+
+    if (!error_handler (task, res, "updating package data")) return;
+
+    message (_("Finding packages - please wait..."), 0 , -1);
+
+    pk_client_resolve_async (PK_CLIENT (task), 0, pkg, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_1_done, NULL);
+}
+
+static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    PkResults *results;
+    PkPackageSack *sack;
+
+    results = error_handler (task, res, "finding packages");
+    if (!results) return;
+
+    message (_("Updating application - please wait..."), 0 , -1);
+
+    sack = pk_results_get_package_sack (results);
+    pk_task_update_packages_async (task, pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
+    g_object_unref (sack);
+}
+
+static void update_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    if (!error_handler (task, res, "updating application")) return;
+
+    read_data_file (task);
+}
+
+static void read_data_file (PkTask *task)
+{
+    GtkTreeIter entry, cat_entry;
+    GdkPixbuf *icon;
+    GKeyFile *kf;
+    gchar **groups, **pnames;
+    gchar *buf, *cat, *name, *desc, *iname, *loc;
+    gboolean new;
+    int pcount = 0;
+
+    loc = setlocale (0, "");
+    strtok (loc, "_. ");
+    buf = g_strdup_printf ("%s/prefapps_%s.conf", PACKAGE_DATA_DIR, loc);
+
+    kf = g_key_file_new ();
+    if (g_key_file_load_from_file (kf, buf, G_KEY_FILE_NONE, NULL) ||
+        g_key_file_load_from_file (kf, PACKAGE_DATA_DIR "/prefapps.conf", G_KEY_FILE_NONE, NULL))
+    {
+        g_free (buf);
+        gtk_list_store_append (GTK_LIST_STORE (categories), &cat_entry);
+        icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "rpi", 32, 0, NULL);
+        gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, _("All Programs"), -1);
+        if (icon) g_object_unref (icon);
+        groups = g_key_file_get_groups (kf, NULL);
+
+        while (groups[pcount])
+        {
+            cat = g_key_file_get_value (kf, groups[pcount], "category", NULL);
+            name = g_key_file_get_value (kf, groups[pcount], "name", NULL);
+            desc = g_key_file_get_value (kf, groups[pcount], "description", NULL);
+            iname = g_key_file_get_value (kf, groups[pcount], "icon", NULL);
+
+            // create array of package names
+            pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
+            pnames[pcount] = g_key_file_get_value (kf, groups[pcount], "package", NULL);
+            pnames[pcount + 1] = NULL;
+
+            // add unique entries to category list
+            new = TRUE;
+            gtk_tree_model_get_iter_first (GTK_TREE_MODEL (categories), &cat_entry);
+            while (gtk_tree_model_iter_next (GTK_TREE_MODEL (categories), &cat_entry))
+            {
+                gtk_tree_model_get (GTK_TREE_MODEL (categories), &cat_entry, CAT_NAME, &buf, -1);
+                if (!g_strcmp0 (cat, buf))
+                {
+                    new = FALSE;
+                    g_free (buf);
+                    break;
+                }
+                g_free (buf);
+            } 
+
+            if (new)
+            {
+                icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), cat_icon_name (cat), 32, 0, NULL);
+                gtk_list_store_append (categories, &cat_entry);
+                gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, cat, -1);
+                if (icon) g_object_unref (icon);
+            }
+
+            // create the entry for the packages list
+            icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
+            if (!icon) icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, 0, NULL);
+            gtk_list_store_append (packages, &entry);
+            gtk_list_store_set (packages, &entry, PACK_ICON, icon, PACK_INSTALLED, FALSE, PACK_CATEGORY, cat, PACK_PACKAGE_NAME, pnames[pcount], PACK_PACKAGE_ID, "none", PACK_CELL_NAME, name, PACK_CELL_DESC, desc, -1);
+            if (icon) g_object_unref (icon);
+
+            g_free (cat);
+            g_free (name);
+            g_free (desc);
+            g_free (iname);
+
+            pcount++;
+        }
+        g_free (groups);
+    }
+    else
+    {
+        // handle no data file here...
+        g_free (buf);
+        message (_("Unable to open package data file"), 1 , -1);
+        return;
+    }
+
+    message (_("Finding packages - please wait..."), 0 , -1);
+
+    pk_client_resolve_async (PK_CLIENT (task), 0, pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_2_done, NULL);
+    g_free (pnames);
+}
+
+static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    PkResults *results;
+    PkPackage *item;
+    PkPackageSack *sack;
+    PkInfoEnum info;
+    GPtrArray *array;
+    GtkTreeIter iter;
+    gboolean valid, inst;
+    gchar *buf, *package_id;
+    int i;
+
+    results = error_handler (task, res, "finding packages");
+    if (!results) return;
+
+    array = pk_results_get_package_array (results);
+
+    for (i = 0; i < array->len; i++)
+    {
+        item = g_ptr_array_index (array, i);
+        g_object_get (item, "info", &info, "package-id", &package_id, NULL);
+
+        valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
+        while (valid)
+        {
+            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &inst, PACK_PACKAGE_NAME, &buf, -1);
+
+            // only update the package id string if no installed version of this package has already been found...
+            if (!strncmp (buf, package_id, strlen (buf)) && !inst)
+            {
+                gtk_list_store_set (packages, &iter, PACK_PACKAGE_ID, package_id, -1);
+
+                // never toggle installed flag from installed to uninstalled - only one version is ever installed...
+                if (info == PK_INFO_ENUM_INSTALLED) gtk_list_store_set (packages, &iter, PACK_INSTALLED, TRUE, -1);
+                break;
+            }
+            valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
+            g_free (buf);
+        }
+        g_free (package_id);
+    }
+
+    message (_("Reading package details - please wait..."), 0 , -1);
+
+    sack = pk_results_get_package_sack (results);
+    pk_client_get_details_async (PK_CLIENT (task), pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
+    g_object_unref (sack);
 }
 
 static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
@@ -324,125 +476,99 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     msg_dlg = NULL;
 }
 
-static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
-{
-    PkResults *results;
-    PkPackage *item;
-    PkPackageSack *sack;
-    PkInfoEnum info;
-    GPtrArray *array;
-    GtkTreeIter iter;
-    gboolean valid, inst;
-    gchar *buf, *package_id;
-    int i;
+/*----------------------------------------------------------------------------*/
+/* Handlers for asynchronous install and remove sequence at end               */
+/*----------------------------------------------------------------------------*/
 
-    results = error_handler (task, res, "finding packages");
-    if (!results) return;
-
-    array = pk_results_get_package_array (results);
-
-    for (i = 0; i < array->len; i++)
-    {
-        item = g_ptr_array_index (array, i);
-        g_object_get (item, "info", &info, "package-id", &package_id, NULL);
-
-        valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
-        while (valid)
-        {
-            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &inst, PACK_PACKAGE_NAME, &buf, -1);
-
-            // only update the package id string if no installed version of this package has already been found...
-            if (!strncmp (buf, package_id, strlen (buf)) && !inst)
-            {
-                gtk_list_store_set (packages, &iter, PACK_PACKAGE_ID, package_id, -1);
-
-                // never toggle installed flag from installed to uninstalled - only one version is ever installed...
-                if (info == PK_INFO_ENUM_INSTALLED) gtk_list_store_set (packages, &iter, PACK_INSTALLED, TRUE, -1);
-                break;
-            }
-            valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
-            g_free (buf);
-        }
-        g_free (package_id);
-    }
-
-    message (_("Reading package details - please wait..."), 0 , -1);
-
-    sack = pk_results_get_package_sack (results);
-    pk_client_get_details_async (PK_CLIENT (task), pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
-    g_object_unref (sack);
-}
-
-static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc)
-{
-    PkResults *results;
-    PkError *pkerror;
-    GError *error = NULL;
-    gchar *buf;
-
-    results = pk_task_generic_finish (task, res, &error);
-    if (error != NULL)
-    {
-        buf = g_strdup_printf (_("Error %s - %s"), desc, error->message);
-        message (buf, 1, -1);
-        g_free (buf);
-        return NULL;
-    }
-
-    pkerror = pk_results_get_error_code (results);
-    if (pkerror != NULL)
-    {
-        buf = g_strdup_printf (_("Error %s- %s"), desc, pk_error_get_details (pkerror));
-        message (buf, 1, -1);
-        g_free (buf);
-        return NULL;
-    }
-
-    return results;
-}
-
-static void update_done (PkTask *task, GAsyncResult *res, gpointer data)
-{
-    if (!error_handler (task, res, "updating application")) return;
-
-    read_data_file (task);
-}
-
-static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
-{
-    PkResults *results;
-    PkPackageSack *sack;
-
-    results = error_handler (task, res, "finding packages");
-    if (!results) return;
-
-    message (_("Updating application - please wait..."), 0 , -1);
-
-    sack = pk_results_get_package_sack (results);
-    pk_task_update_packages_async (task, pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
-    g_object_unref (sack);
-}
-
-static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
-{
-    gchar *pkg[2] = { "rp-prefapps", NULL };
-
-    if (!error_handler (task, res, "updating package data")) return;
-
-    message (_("Finding packages - please wait..."), 0 , -1);
-
-    pk_client_resolve_async (PK_CLIENT (task), 0, pkg, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_1_done, NULL);
-}
-
-static gboolean update_self (gpointer data)
+static void install (GtkButton* btn, gpointer ptr)
 {
     PkTask *task;
+    GtkTreeIter iter;
+    gboolean valid, state;
+    gchar *id;
 
-    message (_("Updating package data - please wait..."), 0 , -1);
+    gtk_widget_set_sensitive (info_btn, FALSE);
+    gtk_widget_set_sensitive (cancel_btn, FALSE);
+    gtk_widget_set_sensitive (install_btn, FALSE);
 
-    task = pk_task_new ();
-    pk_client_refresh_cache_async (PK_CLIENT (task), TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) refresh_cache_done, NULL);
+    n_inst = 0;
+    n_uninst = 0;
+    pinst = malloc (sizeof (gchar *));
+    pinst[n_inst] = NULL;
+    pinst = malloc (sizeof (gchar *));
+    pinst[n_uninst] = NULL;
+
+    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
+    while (valid)
+    {
+        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &state, PACK_PACKAGE_ID, &id, -1);
+        if (!strstr (id, ";installed:"))
+        {
+            if (state)
+            {
+                // needs install
+                pinst = realloc (pinst, (n_inst + 2) * sizeof (gchar *));
+                pinst[n_inst++] = g_strdup (id);
+                pinst[n_inst] = NULL;
+            }
+        }
+        else
+        {
+            if (!state)
+            {
+                // needs uninstall
+                puninst = realloc (puninst, (n_uninst + 2) * sizeof (gchar *));
+                puninst[n_uninst++] = g_strdup (id);
+                puninst[n_uninst] = NULL;
+            }
+        }
+        g_free (id);
+        valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
+    }
+
+    if (n_inst)
+    {
+        message (_("Installing packages - please wait..."), 0 , -1);
+
+        task = pk_task_new ();
+        pk_task_install_packages_async (task, pinst, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) install_done, NULL);
+    }
+    else if (n_uninst)
+    {
+        message (_("Removing packages - please wait..."), 0 , -1);
+
+        task = pk_task_new ();
+        pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
+    }
+    else gtk_main_quit ();
 }
+
+static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    if (!error_handler (task, res, "installing packages")) return;
+
+    if (n_uninst)
+    {
+        message (_("Removing packages - please wait..."), 0 , -1);
+
+        pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
+    }
+    else message (_("Installation complete"), 1, -1);
+}
+
+static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    if (!error_handler (task, res, "removing packages")) return;
+
+    if (n_inst)
+        message (_("Installation and removal complete"), 1, -1);
+    else
+        message (_("Removal complete"), 1, -1);
+}
+
+/*----------------------------------------------------------------------------*/
+/* Helper functions for tree views                                            */
+/*----------------------------------------------------------------------------*/
 
 static const char *cat_icon_name (char *category)
 {
@@ -488,94 +614,6 @@ static const char *cat_icon_name (char *category)
     return NULL;
 }
 
-static void read_data_file (PkTask *task)
-{
-    GtkTreeIter entry, cat_entry;
-    GdkPixbuf *icon;
-    GKeyFile *kf;
-    gchar **groups;
-    gchar *buf, *cat, *name, *desc, *iname, *loc;
-    gboolean new;
-    int pcount = 0;
-
-    loc = setlocale (0, "");
-    strtok (loc, "_. ");
-    buf = g_strdup_printf ("%s/prefapps_%s.conf", PACKAGE_DATA_DIR, loc);
-
-    kf = g_key_file_new ();
-    if (g_key_file_load_from_file (kf, buf, G_KEY_FILE_NONE, NULL) ||
-        g_key_file_load_from_file (kf, PACKAGE_DATA_DIR "/prefapps.conf", G_KEY_FILE_NONE, NULL))
-    {
-        g_free (buf);
-        gtk_list_store_append (GTK_LIST_STORE (categories), &cat_entry);
-        icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "rpi", 32, 0, NULL);
-        gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, _("All Programs"), -1);
-        if (icon) g_object_unref (icon);
-        groups = g_key_file_get_groups (kf, NULL);
-
-        while (*groups)
-        {
-            cat = g_key_file_get_value (kf, *groups, "category", NULL);
-            name = g_key_file_get_value (kf, *groups, "name", NULL);
-            desc = g_key_file_get_value (kf, *groups, "description", NULL);
-            iname = g_key_file_get_value (kf, *groups, "icon", NULL);
-
-            // create array of package names
-            pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
-            pnames[pcount++] = g_key_file_get_value (kf, *groups, "package", NULL);
-            pnames[pcount] = NULL;
-
-            // add unique entries to category list
-            new = TRUE;
-            gtk_tree_model_get_iter_first (GTK_TREE_MODEL (categories), &cat_entry);
-            while (gtk_tree_model_iter_next (GTK_TREE_MODEL (categories), &cat_entry))
-            {
-                gtk_tree_model_get (GTK_TREE_MODEL (categories), &cat_entry, CAT_NAME, &buf, -1);
-                if (!g_strcmp0 (cat, buf))
-                {
-                    new = FALSE;
-                    g_free (buf);
-                    break;
-                }
-                g_free (buf);
-            } 
-
-            if (new)
-            {
-                icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), cat_icon_name (cat), 32, 0, NULL);
-                gtk_list_store_append (categories, &cat_entry);
-                gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, cat, -1);
-                if (icon) g_object_unref (icon);
-            }
-
-            // create the entry for the packages list
-            icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
-            if (!icon) icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, 0, NULL);
-            gtk_list_store_append (packages, &entry);
-            gtk_list_store_set (packages, &entry, PACK_ICON, icon, PACK_INSTALLED, FALSE, PACK_CATEGORY, cat, PACK_PACKAGE_NAME, pnames[pcount - 1], PACK_PACKAGE_ID, "none", PACK_CELL_NAME, name, PACK_CELL_DESC, desc, -1);
-            if (icon) g_object_unref (icon);
-
-            g_free (cat);
-            g_free (name);
-            g_free (desc);
-            g_free (iname);
-
-            groups++;
-        }
-    }
-    else
-    {
-        // handle no data file here...
-        g_free (buf);
-        message (_("Unable to open package data file"), 1 , -1);
-        return;
-    }
-
-    message (_("Finding packages - please wait..."), 0 , -1);
-
-    pk_client_resolve_async (PK_CLIENT (task), 0, pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_2_done, NULL);
-}
-
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
 {
     GtkTreeModel *cmodel;
@@ -611,6 +649,74 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     g_free (cat);
     return res;
 }
+
+/*----------------------------------------------------------------------------*/
+/* Progress / error box                                                       */
+/*----------------------------------------------------------------------------*/
+
+static gboolean ok_clicked (GtkButton *button, gpointer data)
+{
+    gtk_widget_destroy (GTK_WIDGET (msg_dlg));
+    msg_dlg = NULL;
+    gtk_main_quit ();
+    return FALSE;
+}
+
+static void message (char *msg, int wait, int prog)
+{
+    if (!msg_dlg)
+    {
+        GtkBuilder *builder;
+        GtkWidget *wid;
+        GdkColor col;
+
+        builder = gtk_builder_new ();
+        gtk_builder_add_from_file (builder, PACKAGE_DATA_DIR "/rp_prefapps.ui", NULL);
+
+        msg_dlg = (GtkWidget *) gtk_builder_get_object (builder, "msg");
+        gtk_window_set_modal (GTK_WINDOW (msg_dlg), TRUE);
+        gtk_window_set_transient_for (GTK_WINDOW (msg_dlg), GTK_WINDOW (main_dlg));
+        gtk_window_set_position (GTK_WINDOW (msg_dlg), GTK_WIN_POS_CENTER_ON_PARENT);
+        gtk_window_set_destroy_with_parent (GTK_WINDOW (msg_dlg), TRUE);
+        gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 340, 100);
+
+        wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_eb");
+        gdk_color_parse ("#FFFFFF", &col);
+        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
+
+        msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "msg_lbl");
+        msg_pb = (GtkWidget *) gtk_builder_get_object (builder, "msg_pb");
+        msg_btn = (GtkWidget *) gtk_builder_get_object (builder, "msg_btn");
+
+        gtk_label_set_text (GTK_LABEL (msg_msg), msg);
+
+        gtk_widget_show_all (msg_dlg);
+        g_object_unref (builder);
+    }
+    else gtk_label_set_text (GTK_LABEL (msg_msg), msg);
+
+    if (wait)
+    {
+        g_signal_connect (msg_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
+        gtk_widget_set_visible (msg_pb, FALSE);
+        gtk_widget_set_visible (msg_btn, TRUE);
+    }
+    else
+    {
+        gtk_widget_set_visible (msg_btn, FALSE);
+        gtk_widget_set_visible (msg_pb, TRUE);
+        if (prog == -1) gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+        else
+        {
+            float progress = prog / 100.0;
+            gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (msg_pb), progress);
+        }
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+/* Handlers for main window user interaction                                  */
+/*----------------------------------------------------------------------------*/
 
 static void package_selected (GtkTreeView *tv, gpointer ptr)
 {
@@ -673,16 +779,6 @@ static void cancel (GtkButton* btn, gpointer ptr)
     gtk_main_quit ();
 }
 
-static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
-{
-    if (!error_handler (task, res, "removing packages")) return;
-
-    if (inst)
-        message (_("Installation and removal complete"), 1, -1);
-    else
-        message (_("Removal complete"), 1, -1);
-}
-
 static void info (GtkButton* btn, gpointer ptr)
 {
     GtkTreeIter iter, citer;
@@ -719,83 +815,9 @@ static void info (GtkButton* btn, gpointer ptr)
     }
 }
 
-static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
-{
-    if (!error_handler (task, res, "installing packages")) return;
-
-    if (uninst)
-    {
-        message (_("Removing packages - please wait..."), 0 , -1);
-
-        pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
-    }
-    else message (_("Installation complete"), 1, -1);
-}
-
-static void install (GtkButton* btn, gpointer ptr)
-{
-    PkTask *task;
-    GtkTreeIter iter;
-    gboolean valid, state;
-    gchar *id;
-
-    gtk_widget_set_sensitive (info_btn, FALSE);
-    gtk_widget_set_sensitive (cancel_btn, FALSE);
-    gtk_widget_set_sensitive (install_btn, FALSE);
-
-    inst = 0;
-    uninst = 0;
-    pinst = malloc (sizeof (gchar *));
-    pinst[inst] = NULL;
-    pinst = malloc (sizeof (gchar *));
-    pinst[uninst] = NULL;
-
-    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
-    while (valid)
-    {
-        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &state, PACK_PACKAGE_ID, &id, -1);
-        if (!strstr (id, ";installed:"))
-        {
-            if (state)
-            {
-                // needs install
-                pinst = realloc (pinst, (inst + 2) * sizeof (gchar *));
-                pinst[inst++] = g_strdup (id);
-                pinst[inst] = NULL;
-            }
-        }
-        else
-        {
-            if (!state)
-            {
-                // needs uninstall
-                puninst = realloc (puninst, (uninst + 2) * sizeof (gchar *));
-                puninst[uninst++] = g_strdup (id);
-                puninst[uninst] = NULL;
-            }
-        }
-        g_free (id);
-        valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
-    }
-
-    if (inst)
-    {
-        message (_("Installing packages - please wait..."), 0 , -1);
-
-        task = pk_task_new ();
-        pk_task_install_packages_async (task, pinst, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) install_done, NULL);
-    }
-    else if (uninst)
-    {
-        message (_("Removing packages - please wait..."), 0 , -1);
-
-        task = pk_task_new ();
-        pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
-    }
-    else gtk_main_quit ();
-}
-
-/* The dialog... */
+/*----------------------------------------------------------------------------*/
+/* Main window                                                                */
+/*----------------------------------------------------------------------------*/
 
 int main (int argc, char *argv[])
 {
@@ -879,4 +901,5 @@ int main (int argc, char *argv[])
     return 0;
 }
 
-
+/* End of file                                                                */
+/*----------------------------------------------------------------------------*/
