@@ -82,9 +82,14 @@ static char *name_from_id (const gchar *id);
 static void progress (PkProgress *progress, PkProgressType *type, gpointer data);
 static void details_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
-static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data);
+static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc);
+static void update_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
+static gboolean update_self (gpointer data);
 static const char *cat_icon_name (char *category);
-static gboolean read_data_file (gpointer data);
+static void read_data_file (PkTask *task);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 static void package_selected (GtkTreeView *tv, gpointer ptr);
 static void category_selected (GtkTreeView *tv, gpointer ptr);
@@ -191,7 +196,13 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
                                                     break;
 
             case PK_ROLE_ENUM_RESOLVE :             if (status == PK_STATUS_ENUM_LOADING_CACHE)
-                                                        message (_("Reading package status - please wait..."), 0, pk_progress_get_percentage (progress));
+                                                        message (_("Finding packages - please wait..."), 0, pk_progress_get_percentage (progress));
+                                                    else
+                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                    break;
+
+            case PK_ROLE_ENUM_UPDATE_PACKAGES :     if (status == PK_STATUS_ENUM_LOADING_CACHE)
+                                                        message (_("Updating application - please wait..."), 0, pk_progress_get_percentage (progress));
                                                     else
                                                         gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
                                                     break;
@@ -246,9 +257,7 @@ static unsigned long get_size (const char *pkg_id)
 static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
-    PkError *pkerror;
     PkDetails *item;
-    GError *error = NULL;
     GPtrArray *array;
     GtkTreeIter iter;
     gboolean valid;
@@ -258,23 +267,8 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     float skb;
     int i, dp;
 
-    results = pk_task_generic_finish (task, res, &error);
-    if (error != NULL)
-    {
-        buf = g_strdup_printf (_("Error reading package details - %s"), error->message);
-        message (buf, 1, -1);
-        g_free (buf);
-        return;
-    }
-
-    pkerror = pk_results_get_error_code (results);
-    if (pkerror != NULL)
-    {
-        buf = g_strdup_printf (_("Error reading package details - %s"), pk_error_get_details (pkerror));
-        message (buf, 1, -1);
-        g_free (buf);
-        return;
-    }
+    results = error_handler (task, res, "reading package details");
+    if (!results) return;
 
     array = pk_results_get_details_array (results);
 
@@ -330,44 +324,27 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     msg_dlg = NULL;
 }
 
-static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
+static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
-    PkError *pkerror;
     PkPackage *item;
     PkPackageSack *sack;
     PkInfoEnum info;
-    GError *error = NULL;
     GPtrArray *array;
     GtkTreeIter iter;
     gboolean valid, inst;
-    gchar *buf, *package_id, *summary;
+    gchar *buf, *package_id;
     int i;
 
-    results = pk_task_generic_finish (task, res, &error);
-    if (error != NULL)
-    {
-        buf = g_strdup_printf (_("Error reading package status - %s"), error->message);
-        message (buf, 1, -1);
-        g_free (buf);
-        return;
-    }
-
-    pkerror = pk_results_get_error_code (results);
-    if (pkerror != NULL)
-    {
-        buf = g_strdup_printf (_("Error reading package status - %s"), pk_error_get_details (pkerror));
-        message (buf, 1, -1);
-        g_free (buf);
-        return;
-    }
+    results = error_handler (task, res, "finding packages");
+    if (!results) return;
 
     array = pk_results_get_package_array (results);
 
     for (i = 0; i < array->len; i++)
     {
         item = g_ptr_array_index (array, i);
-        g_object_get (item, "info", &info, "package-id", &package_id, "summary", &summary, NULL);
+        g_object_get (item, "info", &info, "package-id", &package_id, NULL);
 
         valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
         while (valid)
@@ -394,7 +371,7 @@ static void resolve_done (PkTask *task, GAsyncResult *res, gpointer data)
     pk_client_get_details_async (PK_CLIENT (task), pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
 }
 
-static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
+static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc)
 {
     PkResults *results;
     PkError *pkerror;
@@ -404,24 +381,69 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
     results = pk_task_generic_finish (task, res, &error);
     if (error != NULL)
     {
-        buf = g_strdup_printf (_("Error updating package data - %s"), error->message);
+        buf = g_strdup_printf (_("Error %s - %s"), desc, error->message);
         message (buf, 1, -1);
         g_free (buf);
-        return;
+        return NULL;
     }
 
     pkerror = pk_results_get_error_code (results);
     if (pkerror != NULL)
     {
-        buf = g_strdup_printf (_("Error updating package data - %s"), pk_error_get_details (pkerror));
+        buf = g_strdup_printf (_("Error %s- %s"), desc, pk_error_get_details (pkerror));
         message (buf, 1, -1);
         g_free (buf);
-        return;
+        return NULL;
     }
 
-    message (_("Reading package status - please wait..."), 0 , -1);
+    return results;
+}
 
-    pk_client_resolve_async (PK_CLIENT (task), 0, pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_done, NULL);
+static void update_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    if (!error_handler (task, res, "updating application")) return;
+
+    read_data_file (task);
+}
+
+static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    PkResults *results;
+    PkPackage *item;
+    PkPackageSack *sack;
+    gchar **pkg;
+
+    results = error_handler (task, res, "finding packages");
+    if (!results) return;
+
+    message (_("Updating application - please wait..."), 0 , -1);
+
+    sack = pk_results_get_package_sack (results);
+    pkg = pk_package_sack_get_ids (sack);
+    pk_task_update_packages_async (task, pkg, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
+    g_strfreev (pkg);
+    g_object_unref (sack);
+}
+
+static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
+{
+    gchar *pkg[2] = { "rp-prefapps", NULL };
+
+    if (!error_handler (task, res, "updating package data")) return;
+
+    message (_("Finding packages - please wait..."), 0 , -1);
+
+    pk_client_resolve_async (PK_CLIENT (task), 0, pkg, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_1_done, NULL);
+}
+
+static gboolean update_self (gpointer data)
+{
+    PkTask *task;
+
+    message (_("Updating package data - please wait..."), 0 , -1);
+
+    task = pk_task_new ();
+    pk_client_refresh_cache_async (PK_CLIENT (task), TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) refresh_cache_done, NULL);
 }
 
 static const char *cat_icon_name (char *category)
@@ -468,16 +490,14 @@ static const char *cat_icon_name (char *category)
     return NULL;
 }
 
-static gboolean read_data_file (gpointer data)
+static void read_data_file (PkTask *task)
 {
     GtkTreeIter entry, cat_entry;
     GdkPixbuf *icon;
     GKeyFile *kf;
-    PkTask *task;
     gchar **groups;
     gchar *buf, *cat, *name, *desc, *iname, *loc;
     gboolean new;
-    gchar *pname;
     int pcount = 0;
 
     loc = setlocale (0, "");
@@ -550,14 +570,12 @@ static gboolean read_data_file (gpointer data)
         // handle no data file here...
         g_free (buf);
         message (_("Unable to open package data file"), 1 , -1);
-        return FALSE;
+        return;
     }
 
-    message (_("Updating package data - please wait..."), 0 , -1);
+    message (_("Finding packages - please wait..."), 0 , -1);
 
-    task = pk_task_new ();
-    pk_client_refresh_cache_async (PK_CLIENT (task), TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) refresh_cache_done, NULL);
-    return FALSE;
+    pk_client_resolve_async (PK_CLIENT (task), 0, pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_2_done, NULL);
 }
 
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
@@ -659,28 +677,7 @@ static void cancel (GtkButton* btn, gpointer ptr)
 
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
-    PkResults *results;
-    PkError *pkerror;
-    GError *error = NULL;
-    gchar *buf;
-
-    results = pk_task_generic_finish (task, res, &error);
-    if (error != NULL)
-    {
-        buf = g_strdup_printf (_("Error removing packages - %s"), error->message);
-        message (buf, 1, -1);
-        g_free (buf);
-        return;
-    }
-
-    pkerror = pk_results_get_error_code (results);
-    if (pkerror != NULL)
-    {
-        buf = g_strdup_printf (_("Error removing packages - %s"), pk_error_get_details (pkerror));
-        message (buf, 1, -1);
-        g_free (buf);
-        return;
-    }
+    if (!error_handler (task, res, "removing packages")) return;
 
     if (inst)
         message (_("Installation and removal complete"), 1, -1);
@@ -726,28 +723,7 @@ static void info (GtkButton* btn, gpointer ptr)
 
 static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
-    PkResults *results;
-    PkError *pkerror;
-    GError *error = NULL;
-    gchar *buf;
-
-    results = pk_task_generic_finish (task, res, &error);
-    if (error != NULL)
-    {
-        buf = g_strdup_printf (_("Error installing packages - %s"), error->message);
-        message (buf, 1, -1);
-        g_free (buf);
-        return;
-    }
-
-    pkerror = pk_results_get_error_code (results);
-    if (pkerror != NULL)
-    {
-        buf = g_strdup_printf (_("Error installing packages - %s"), pk_error_get_details (pkerror));
-        message (buf, 1, -1);
-        g_free (buf);
-        return;
-    }
+    if (!error_handler (task, res, "installing packages")) return;
 
     if (uninst)
     {
@@ -895,8 +871,8 @@ int main (int argc, char *argv[])
     gtk_window_set_default_size (GTK_WINDOW (main_dlg), 640, 400);
     gtk_widget_show_all (main_dlg);
 
-    // load the data file and check with backend
-    g_idle_add (read_data_file, NULL);
+    // update application, load the data file and check with backend
+    g_idle_add (update_self, NULL);
     gtk_main ();
 
     g_object_unref (builder);
