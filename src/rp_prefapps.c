@@ -210,7 +210,7 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc)
     pkerror = pk_results_get_error_code (results);
     if (pkerror != NULL)
     {
-        buf = g_strdup_printf (_("Error %s- %s"), desc, pk_error_get_details (pkerror));
+        buf = g_strdup_printf (_("Error %s - %s"), desc, pk_error_get_details (pkerror));
         message (buf, 1, -1);
         g_free (buf);
         return NULL;
@@ -238,7 +238,7 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     gchar *pkg[2] = { "rp-prefapps", NULL };
 
-    if (!error_handler (task, res, "updating package data")) return;
+    if (!error_handler (task, res, _("updating package data"))) return;
 
     message (_("Finding packages - please wait..."), 0 , -1);
 
@@ -250,7 +250,7 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
     PkResults *results;
     PkPackageSack *sack;
 
-    results = error_handler (task, res, "finding packages");
+    results = error_handler (task, res, _("finding packages"));
     if (!results) return;
 
     message (_("Updating application - please wait..."), 0 , -1);
@@ -262,7 +262,7 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
 
 static void update_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
-    if (!error_handler (task, res, "updating application")) return;
+    if (!error_handler (task, res, _("updating application"))) return;
 
     read_data_file (task);
 }
@@ -369,7 +369,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     gchar *buf, *package_id;
     int i;
 
-    results = error_handler (task, res, "finding packages");
+    results = error_handler (task, res, _("finding packages"));
     if (!results) return;
 
     array = pk_results_get_package_array (results);
@@ -419,7 +419,7 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     float skb;
     int i, dp;
 
-    results = error_handler (task, res, "reading package details");
+    results = error_handler (task, res, _("reading package details"));
     if (!results) return;
 
     array = pk_results_get_details_array (results);
@@ -545,7 +545,7 @@ static void install (GtkButton* btn, gpointer ptr)
 
 static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
-    if (!error_handler (task, res, "installing packages")) return;
+    if (!error_handler (task, res, _("installing packages"))) return;
 
     if (n_uninst)
     {
@@ -558,7 +558,7 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
-    if (!error_handler (task, res, "removing packages")) return;
+    if (!error_handler (task, res, _("removing packages"))) return;
 
     if (n_inst)
         message (_("Installation and removal complete"), 1, -1);
