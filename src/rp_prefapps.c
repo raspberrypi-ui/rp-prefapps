@@ -72,7 +72,6 @@ static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn;
 /* Data stores for tree views */
 
 GtkListStore *categories, *packages;
-GtkTreeModel *fpackages;
 
 /* Data stores and counters for packages to install and remove */
 
@@ -406,12 +405,31 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     g_object_unref (sack);
 }
 
+static int category_sort (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointer userdata)
+{
+    gchar *name1, *name2;
+    int ret;
+
+    gtk_tree_model_get (model, a, CAT_NAME, &name1, -1);
+    gtk_tree_model_get (model, b, CAT_NAME, &name2, -1);
+
+    if (!g_strcmp0 (name1, _("All Programs"))) ret = -1;
+    else if (!g_strcmp0 (name2, _("All Programs"))) ret = 1;
+    else ret = g_strcmp0 (name1, name2);
+
+    g_free (name1);
+    g_free (name2);
+
+    return ret;
+}
+
 static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
     PkDetails *item;
     GPtrArray *array;
     GtkTreeIter iter;
+    GtkTreeModel *scateg, *spackages, *fpackages;
     gboolean valid;
     gchar *buf, *name, *desc;
     const gchar *package_id;
@@ -458,13 +476,18 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
         }
     }
 
-    // data now all loaded - show the main window
-    gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (categories));
-    gtk_tree_model_get_iter_first (GTK_TREE_MODEL (categories), &iter);
+    // data now all loaded - show sorted category list
+    scateg = gtk_tree_model_sort_new_with_model (GTK_TREE_MODEL (categories));
+    gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (scateg), CAT_NAME, category_sort, NULL, NULL);
+    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (scateg), CAT_NAME, GTK_SORT_ASCENDING);
+    gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (scateg));
+    gtk_tree_model_get_iter_first (GTK_TREE_MODEL (scateg), &iter);
     gtk_tree_selection_select_iter (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), &iter);
 
     // set up category filter for package list
-    fpackages = gtk_tree_model_filter_new (GTK_TREE_MODEL (packages), NULL);
+    spackages = gtk_tree_model_sort_new_with_model (GTK_TREE_MODEL (packages));
+    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (spackages), PACK_CELL_NAME, GTK_SORT_ASCENDING);
+    fpackages = gtk_tree_model_filter_new (GTK_TREE_MODEL (spackages), NULL);
     gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fpackages), (GtkTreeModelFilterVisibleFunc) match_category, NULL, NULL);
     gtk_tree_view_set_model (GTK_TREE_VIEW (pack_tv), GTK_TREE_MODEL (fpackages));
     category_selected (NULL, NULL);
@@ -733,14 +756,14 @@ static void package_selected (GtkTreeView *tv, gpointer ptr)
 
 static void category_selected (GtkTreeView *tv, gpointer ptr)
 {
-    gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (fpackages));
+    gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv))));
     package_selected (NULL, NULL);
 }
 
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data)
 {
-    GtkTreeIter iter, citer;
-    GtkTreeModel *model, *cmodel;
+    GtkTreeIter iter, citer, siter;
+    GtkTreeModel *model, *cmodel, *smodel;
     gboolean val;
     gchar *name, *desc, *id, *buf, *state;
     guint64 siz;
@@ -753,7 +776,10 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
     gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
 
-    gtk_tree_model_get (cmodel, &citer, PACK_INSTALLED, &val, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, PACK_SIZE, &siz, PACK_PACKAGE_ID, &id, -1);
+    smodel = gtk_tree_model_sort_get_model (GTK_TREE_MODEL_SORT (cmodel));
+    gtk_tree_model_sort_convert_iter_to_child_iter (GTK_TREE_MODEL_SORT (cmodel), &siter, &citer);
+
+    gtk_tree_model_get (smodel, &siter, PACK_INSTALLED, &val, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, PACK_SIZE, &siz, PACK_PACKAGE_ID, &id, -1);
 
     if (!strstr (id, ";installed:") && !val) state = g_strdup ("   <b>Will be installed</b>");
     else if (strstr (id, ";installed:") && val) state = g_strdup ("   <b>Will be removed</b>");
@@ -766,7 +792,7 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     else dp = 2;
 
     buf = g_strdup_printf (_("<b>%s</b>\n%s\n%s size : %.*f MB%s"), name, desc, strstr (id, ";installed:") ? _("Installed") : _("Download"), dp, skb, state);
-    gtk_list_store_set (GTK_LIST_STORE (cmodel), &citer, PACK_INSTALLED, 1 - val, PACK_CELL_TEXT, buf, -1);
+    gtk_list_store_set (GTK_LIST_STORE (smodel), &siter, PACK_INSTALLED, 1 - val, PACK_CELL_TEXT, buf, -1);
     g_free (buf);
     g_free (state);
     g_free (name);
