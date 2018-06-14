@@ -4,10 +4,16 @@ ui_in_files = 	rp_prefapps.ui \
 				prefapps.conf \
 				bluej.png \
 				claws-mail.png \
+				geany.png \
 				greenfoot.png \
+				libreoffice-main.png \
+				minecraft-pi.png \
 				mu.png \
 				node-red-icon.svg \
+				scratch.png \
+				sense_emu_gui.png \
 				sonic-pi.png \
+				thonny.png \
 				vncviewer48x48.png \
 				wolfram-mathematica.png
 	
