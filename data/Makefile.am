@@ -11,6 +11,7 @@ ui_in_files = 	rp_prefapps.ui \
 				mu.png \
 				node-red-icon.svg \
 				scratch.png \
+				scratch2.png \
 				sense_emu_gui.png \
 				sonic-pi.png \
 				thonny.png \
