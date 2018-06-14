@@ -369,15 +369,15 @@ static void read_data_file (PkTask *task)
 
 static gboolean match_pid (char *name, const char *pid)
 {
-    int pos = 0;
+    char *buf;
+    gboolean ret = FALSE;
 
     if (name == NULL) return FALSE;
-    while (pid[pos] != ';')
-    {
-        if (name[pos] != pid[pos]) return FALSE;
-        pos++;
-    }
-    return TRUE;
+    buf = g_strdup (pid);
+    strtok (buf, ";");
+    if (!g_strcmp0 (buf, name)) ret = TRUE;
+    g_free (buf);
+    return ret;
 }
 
 static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
