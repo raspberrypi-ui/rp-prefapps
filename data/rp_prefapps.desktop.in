@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-_Name=Recommended Applications
-_GenericName=Recommended Applications
-_Comment=Recommended applications for the Raspberry Pi
+_Name=Recommended Software
+_GenericName=Recommended Software
+_Comment=Install additional programs recommended for use on the Pi
 Icon=rpi
 Exec=env SUDO_ASKPASS=/usr/bin/pwdrpp.sh sudo -A rp_prefapps
 NotShowIn=GNOME;XFCE;
