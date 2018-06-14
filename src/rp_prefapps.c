@@ -356,6 +356,7 @@ static void read_data_file (PkTask *task)
     {
         // handle no data file here...
         g_free (buf);
+        g_free (pnames);
         message (_("Unable to open package data file"), 1 , -1);
         return;
     }
