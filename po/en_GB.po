@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rp_prefapps 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-15 11:58+0100\n"
-"PO-Revision-Date: 2018-06-15 11:58+0100\n"
+"POT-Creation-Date: 2018-06-15 12:07+0100\n"
+"PO-Revision-Date: 2018-06-15 12:07+0100\n"
 "Last-Translator: Simon Long <simon@raspberrypi.org>\n"
 "Language-Team: English (British)\n"
 "Language: en_GB\n"
@@ -191,6 +191,14 @@ msgstr ""
 #: ../src/rp_prefapps.c:870
 msgid "No additional information available for this package."
 msgstr "No additional information available for this package."
+
+#: ../src/rp_prefapps.c:940
+msgid "Application"
+msgstr "Application"
+
+#: ../src/rp_prefapps.c:941
+msgid "Install"
+msgstr "Install"
 
 #. End of file
 #. ----------------------------------------------------------------------------

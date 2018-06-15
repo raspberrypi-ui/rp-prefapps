@@ -937,15 +937,15 @@ int main (int argc, char *argv[])
     gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (cat_tv), FALSE);
 
     gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 0, "", crp, "pixbuf", PACK_ICON, NULL);
-    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 1, "Description", crt, "markup", PACK_CELL_TEXT, NULL);
-    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 2, "Install", crb, "active", PACK_INSTALLED, NULL);
+    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 1, _("Application"), crt, "markup", PACK_CELL_TEXT, NULL);
+    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 2, _("Install"), crb, "active", PACK_INSTALLED, NULL);
 
     gtk_tree_view_column_set_sizing (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 0), GTK_TREE_VIEW_COLUMN_FIXED);
     gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 0), 45);
     gtk_tree_view_column_set_expand (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 1), TRUE);
     g_object_set (crt, "wrap-mode", PANGO_WRAP_WORD, "wrap-width", 320, NULL);
     gtk_tree_view_column_set_sizing (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), GTK_TREE_VIEW_COLUMN_FIXED);
-    gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), 45);
+    gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), 50);
 
     g_signal_connect (cat_tv, "cursor-changed", G_CALLBACK (category_selected), NULL);
     g_signal_connect (crb, "toggled", G_CALLBACK (install_toggled), NULL);
