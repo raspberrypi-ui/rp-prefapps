@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <config.h>
 #endif
 
+#define _GNU_SOURCE
 #include <string.h>
 #include <math.h>
 #include <ctype.h>
@@ -68,7 +69,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Controls */
 
-static GtkWidget *main_dlg, *cat_tv, *pack_tv, *info_btn, *cancel_btn, *install_btn;
+static GtkWidget *main_dlg, *cat_tv, *pack_tv, *info_btn, *cancel_btn, *install_btn, *search_te;
 static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn;
 
 /* Data stores for tree views */
@@ -107,6 +108,7 @@ static void category_selected (GtkTreeView *tv, gpointer ptr);
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data);
 static void cancel (GtkButton* btn, gpointer ptr);
 static void info (GtkButton* btn, gpointer ptr);
+static gboolean search_update (GtkEditable *editable, gpointer userdata);
 
 /*----------------------------------------------------------------------------*/
 /* Helper functions for async operations                                      */
@@ -677,6 +679,7 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     GtkTreeIter citer;
     GtkTreeSelection *sel;
     char *str, *cat;
+    const gchar *search;
     gboolean res;
 
     // get the current category selection from the category box
@@ -700,6 +703,18 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
             gtk_tree_model_get (model, iter, PACK_CATEGORY, &str, -1);
             if (!g_strcmp0 (str, cat)) res = TRUE;
             else res = FALSE;
+        }
+
+        // filter on search text
+        if (res)
+        {
+            search = gtk_entry_get_text (GTK_ENTRY (search_te));
+            if (search[0])
+            {
+                g_free (str);
+                gtk_tree_model_get (model, iter, PACK_CELL_DESC, &str, -1);
+                if (!strcasestr (str, search)) res = FALSE;
+            }
         }
     }
     g_free (str);
@@ -867,6 +882,11 @@ static void info (GtkButton* btn, gpointer ptr)
     }
 }
 
+static gboolean search_update (GtkEditable *editable, gpointer userdata)
+{
+    gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv))));
+}
+
 /*----------------------------------------------------------------------------*/
 /* Main window                                                                */
 /*----------------------------------------------------------------------------*/
@@ -899,6 +919,7 @@ int main (int argc, char *argv[])
     info_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_info");
     cancel_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_cancel");
     install_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_ok");
+    search_te = (GtkWidget *) gtk_builder_get_object (builder, "search");
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
@@ -933,6 +954,7 @@ int main (int argc, char *argv[])
     g_signal_connect (info_btn, "clicked", G_CALLBACK (info), NULL);
     g_signal_connect (main_dlg, "delete_event", G_CALLBACK (cancel), NULL);
     g_signal_connect (pack_tv, "cursor-changed", G_CALLBACK (package_selected), NULL);
+    g_signal_connect (search_te, "changed", G_CALLBACK (search_update), NULL);
 
     gtk_widget_set_sensitive (info_btn, FALSE);
     gtk_widget_set_sensitive (cancel_btn, FALSE);
