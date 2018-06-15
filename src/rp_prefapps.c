@@ -477,7 +477,7 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
             gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_NAME, &pid, PACK_RPACKAGE_NAME, &rid, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, PACK_SIZE, &size, -1);
             if (match_pid (pid, package_id))
             {
-                buf = g_strdup_printf (_("<b>%s</b>\n%s\nSize : %s MB"), name, desc, size);
+                buf = g_strdup_printf (_("<b>%s</b>\n%s\nApprox. size : %s MB"), name, desc, size);
                 gtk_list_store_set (packages, &iter, PACK_CELL_TEXT, buf, PACK_DESCRIPTION, pk_details_get_description (item), PACK_SUMMARY, pk_details_get_summary (item), -1);
                 g_free (buf);
                 g_free (pid);
@@ -816,7 +816,7 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     else if (strstr (id, ";installed:") && val) state = g_strdup ("   <b>Will be removed</b>");
     else state = g_strdup ("");
 
-    buf = g_strdup_printf (_("<b>%s</b>\n%s\nSize : %s MB%s"), name, desc, siz, state);
+    buf = g_strdup_printf (_("<b>%s</b>\n%s\nApprox. size : %s MB%s"), name, desc, siz, state);
     gtk_list_store_set (GTK_LIST_STORE (smodel), &siter, PACK_INSTALLED, 1 - val, PACK_CELL_TEXT, buf, -1);
     g_free (buf);
     g_free (state);
