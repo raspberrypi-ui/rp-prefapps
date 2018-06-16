@@ -63,6 +63,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define PACK_SUMMARY        10
 #define PACK_RPACKAGE_NAME  11
 #define PACK_RPACKAGE_ID    12
+#define PACK_INIT_INST      13
 
 #define CAT_ICON            0
 #define CAT_NAME            1
@@ -341,9 +342,11 @@ static void read_data_file (PkTask *task)
             icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
             if (!icon) icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, 0, NULL);
             gtk_list_store_append (packages, &entry);
-            gtk_list_store_set (packages, &entry, PACK_ICON, icon, PACK_INSTALLED, FALSE, PACK_CATEGORY, cat, PACK_PACKAGE_NAME, pack, PACK_PACKAGE_ID, "none", PACK_RPACKAGE_NAME, rpack, PACK_RPACKAGE_ID, "none", PACK_CELL_NAME, name, PACK_CELL_DESC, desc, PACK_SIZE, size, -1);
+            buf = g_strdup_printf (_("<b>%s</b>\n%s\nApprox. size : %s MB"), name, desc, size);
+            gtk_list_store_set (packages, &entry, PACK_ICON, icon, PACK_CELL_TEXT, buf, PACK_INSTALLED, FALSE, PACK_INIT_INST, FALSE, PACK_CATEGORY, cat, PACK_PACKAGE_NAME, pack, PACK_PACKAGE_ID, "none", PACK_RPACKAGE_NAME, rpack, PACK_RPACKAGE_ID, "none", PACK_CELL_NAME, name, PACK_CELL_DESC, desc, PACK_SIZE, size, -1);
             if (icon) g_object_unref (icon);
 
+            g_free (buf);
             g_free (cat);
             g_free (name);
             g_free (desc);
@@ -393,7 +396,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     GPtrArray *array;
     GtkTreeIter iter;
     gboolean valid, inst;
-    gchar *buf, *package_id;
+    gchar *pack, *rpack, *package_id;
     int i;
 
     results = error_handler (task, res, _("finding packages"));
@@ -401,27 +404,62 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
 
     array = pk_results_get_package_array (results);
 
+    // Need to loop through the array of returned IDs twice. On the first pass, only look at
+    // IDs of packages which are installed; for each of those, store the ID. Need to store both
+    // ID and rID (if there is one)
+
     for (i = 0; i < array->len; i++)
     {
         item = g_ptr_array_index (array, i);
         g_object_get (item, "info", &info, "package-id", &package_id, NULL);
 
-        valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
-        while (valid)
+        if (info == PK_INFO_ENUM_INSTALLED)
         {
-            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &inst, PACK_PACKAGE_NAME, &buf, -1);
-
-            // only update the package id string if no installed version of this package has already been found...
-            if (match_pid (buf, package_id) && !inst)
+            valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
+            while (valid)
             {
-                gtk_list_store_set (packages, &iter, PACK_PACKAGE_ID, package_id, -1);
-
-                // never toggle installed flag from installed to uninstalled - only one version is ever installed...
-                if (info == PK_INFO_ENUM_INSTALLED) gtk_list_store_set (packages, &iter, PACK_INSTALLED, TRUE, -1);
-                break;
+                gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_NAME, &pack, PACK_RPACKAGE_NAME, &rpack, -1);
+                if (match_pid (pack, package_id))
+                {
+                    gtk_list_store_set (packages, &iter, PACK_PACKAGE_ID, package_id, PACK_INSTALLED, TRUE, PACK_INIT_INST, TRUE, -1);
+                    break;
+                }
+                if (match_pid (rpack, package_id))
+                {
+                    gtk_list_store_set (packages, &iter, PACK_RPACKAGE_ID, package_id, PACK_INSTALLED, TRUE, PACK_INIT_INST, TRUE, -1);
+                    break;
+                }
+                valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
+                g_free (pack);
+                g_free (rpack);
             }
-            valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
-            g_free (buf);
+        }
+        g_free (package_id);
+    }
+
+    // At this point, the database contains a valid package ID (and possibly an rID) for each installed package. It
+    // has no IDs for uninstalled packages - so fill in the rest; only update data for an entry which does not already
+    // have the installed flag set
+
+    for (i = 0; i < array->len; i++)
+    {
+        item = g_ptr_array_index (array, i);
+        g_object_get (item, "info", &info, "package-id", &package_id, NULL);
+
+        if (info != PK_INFO_ENUM_INSTALLED)
+        {
+            valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
+            while (valid)
+            {
+                gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &inst, PACK_PACKAGE_NAME, &pack, -1);
+                if (!inst && match_pid (pack, package_id))
+                {
+                    gtk_list_store_set (packages, &iter, PACK_PACKAGE_ID, package_id, -1);
+                    break;
+                }
+                valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
+                g_free (pack);
+            }
         }
         g_free (package_id);
     }
@@ -459,7 +497,7 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     GtkTreeIter iter;
     GtkTreeModel *scateg, *spackages, *fpackages;
     gboolean valid;
-    gchar *buf, *pid, *rid, *name, *desc, *size;
+    gchar *pid, *rid, *sum;
     const gchar *package_id;
     int i;
 
@@ -476,34 +514,29 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
         valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
         while (valid)
         {
-            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_NAME, &pid, PACK_RPACKAGE_NAME, &rid, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, PACK_SIZE, &size, -1);
+            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_NAME, &pid, PACK_RPACKAGE_NAME, &rid, PACK_SUMMARY, &sum, -1);
             if (match_pid (pid, package_id))
             {
-                buf = g_strdup_printf (_("<b>%s</b>\n%s\nApprox. size : %s MB"), name, desc, size);
-                gtk_list_store_set (packages, &iter, PACK_CELL_TEXT, buf, PACK_DESCRIPTION, pk_details_get_description (item), PACK_SUMMARY, pk_details_get_summary (item), -1);
-                g_free (buf);
+                gtk_list_store_set (packages, &iter, PACK_DESCRIPTION, pk_details_get_description (item), PACK_SUMMARY, pk_details_get_summary (item), -1);
+                g_free (sum);
                 g_free (pid);
                 g_free (rid);
-                g_free (name);
-                g_free (desc);
-                g_free (size);
                 break;
             }
+
             if (match_pid (rid, package_id))
             {
-                gtk_list_store_set (packages, &iter, PACK_RPACKAGE_ID, package_id, -1);
+                if (!sum)
+                    gtk_list_store_set (packages, &iter, PACK_DESCRIPTION, pk_details_get_description (item), PACK_SUMMARY, pk_details_get_summary (item), -1);
+                g_free (sum);
                 g_free (pid);
                 g_free (rid);
-                g_free (name);
-                g_free (desc);
-                g_free (size);
                 break;
             }
+
+            g_free (sum);
             g_free (pid);
             g_free (rid);
-            g_free (name);
-            g_free (desc);
-            g_free (size);
             valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
         }
     }
@@ -539,7 +572,7 @@ static void install (GtkButton* btn, gpointer ptr)
 {
     PkTask *task;
     GtkTreeIter iter;
-    gboolean valid, state;
+    gboolean valid, state, init;
     gchar *id, *rid;
 
     gtk_widget_set_sensitive (info_btn, FALSE);
@@ -556,8 +589,8 @@ static void install (GtkButton* btn, gpointer ptr)
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
     while (valid)
     {
-        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &state, PACK_PACKAGE_ID, &id, PACK_RPACKAGE_ID, &rid, -1);
-        if (!strstr (id, ";installed:"))
+        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &state, PACK_INIT_INST, &init, PACK_PACKAGE_ID, &id, PACK_RPACKAGE_ID, &rid, -1);
+        if (!init)
         {
             if (state)
             {
@@ -678,7 +711,7 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     GtkTreeModel *cmodel;
     GtkTreeIter citer;
     GtkTreeSelection *sel;
-    char *str, *cat;
+    char *id, *rid, *pcat, *desc, *cat;
     const gchar *search;
     gboolean res;
 
@@ -691,17 +724,15 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     else cat = g_strdup (_("All Programs"));
 
     // first make sure the package has a package ID - ignore if not
-    gtk_tree_model_get (model, iter, PACK_PACKAGE_ID, &str, -1);
-    if (!g_strcmp0 (str, "none")) res = FALSE;
+    gtk_tree_model_get (model, iter, PACK_PACKAGE_ID, &id, PACK_RPACKAGE_ID, &rid, PACK_CATEGORY, &pcat, PACK_CELL_DESC, &desc, -1);
+    if (!g_strcmp0 (id, "none") && !g_strcmp0 (rid, "none")) res = FALSE;
     else
     {
         // check that category matches
         if (!g_strcmp0 (cat, _("All Programs"))) res = TRUE;
         else
         {
-            g_free (str);
-            gtk_tree_model_get (model, iter, PACK_CATEGORY, &str, -1);
-            if (!g_strcmp0 (str, cat)) res = TRUE;
+            if (!g_strcmp0 (cat, pcat)) res = TRUE;
             else res = FALSE;
         }
 
@@ -711,13 +742,14 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
             search = gtk_entry_get_text (GTK_ENTRY (search_te));
             if (search[0])
             {
-                g_free (str);
-                gtk_tree_model_get (model, iter, PACK_CELL_DESC, &str, -1);
-                if (!strcasestr (str, search)) res = FALSE;
+                if (!strcasestr (desc, search)) res = FALSE;
             }
         }
     }
-    g_free (str);
+    g_free (id);
+    g_free (rid);
+    g_free (pcat);
+    g_free (desc);
     g_free (cat);
     return res;
 }
@@ -813,8 +845,8 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
 {
     GtkTreeIter iter, citer, siter;
     GtkTreeModel *model, *cmodel, *smodel;
-    gboolean val;
-    gchar *name, *desc, *id, *buf, *state, *siz;
+    gboolean val, init;
+    gchar *name, *desc, *buf, *state, *siz;
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     gtk_tree_model_get_iter_from_string (model, &iter, path);
@@ -825,10 +857,10 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     smodel = gtk_tree_model_sort_get_model (GTK_TREE_MODEL_SORT (cmodel));
     gtk_tree_model_sort_convert_iter_to_child_iter (GTK_TREE_MODEL_SORT (cmodel), &siter, &citer);
 
-    gtk_tree_model_get (smodel, &siter, PACK_INSTALLED, &val, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, PACK_SIZE, &siz, PACK_PACKAGE_ID, &id, -1);
+    gtk_tree_model_get (smodel, &siter, PACK_INSTALLED, &val, PACK_INIT_INST, &init, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, PACK_SIZE, &siz, -1);
 
-    if (!strstr (id, ";installed:") && !val) state = g_strdup ("   <b>Will be installed</b>");
-    else if (strstr (id, ";installed:") && val) state = g_strdup ("   <b>Will be removed</b>");
+    if (!init && !val) state = g_strdup ("   <b>Will be installed</b>");
+    else if (init && val) state = g_strdup ("   <b>Will be removed</b>");
     else state = g_strdup ("");
 
     buf = g_strdup_printf (_("<b>%s</b>\n%s\nApprox. size : %s MB%s"), name, desc, siz, state);
@@ -837,7 +869,6 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     g_free (state);
     g_free (name);
     g_free (desc);
-    g_free (id);
     g_free (siz);
 }
 
@@ -923,7 +954,7 @@ int main (int argc, char *argv[])
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    packages = gtk_list_store_new (13, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING);
+    packages = gtk_list_store_new (14, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
 
     // set up tree views
     crp = gtk_cell_renderer_pixbuf_new ();
