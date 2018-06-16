@@ -254,15 +254,26 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
     PkPackageSack *sack;
+    gchar **ids;
 
     results = error_handler (task, res, _("finding packages"));
     if (!results) return;
 
-    message (_("Updating application - please wait..."), 0 , -1);
-
     sack = pk_results_get_package_sack (results);
-    pk_task_update_packages_async (task, pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
-    g_object_unref (sack);
+    ids = pk_package_sack_get_ids (sack);
+    if (*ids)
+    {
+        message (_("Updating application - please wait..."), 0 , -1);
+        pk_task_update_packages_async (task, ids, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
+        g_strfreev (ids);
+        g_object_unref (sack);
+    }
+    else    // can't find rp-prefapps in APT, so can't update - use existing data...
+    {
+        g_strfreev (ids);
+        g_object_unref (sack);
+        read_data_file (task);
+    }
 }
 
 static void update_done (PkTask *task, GAsyncResult *res, gpointer data)
@@ -395,6 +406,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     PkInfoEnum info;
     GPtrArray *array;
     GtkTreeIter iter;
+    gchar **ids;
     gboolean valid, inst;
     gchar *pack, *rpack, *package_id;
     int i;
@@ -467,7 +479,9 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     message (_("Reading package details - please wait..."), 0 , -1);
 
     sack = pk_results_get_package_sack (results);
-    pk_client_get_details_async (PK_CLIENT (task), pk_package_sack_get_ids (sack), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
+    ids = pk_package_sack_get_ids (sack);
+    pk_client_get_details_async (PK_CLIENT (task), ids, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
+    g_strfreev (ids);
     g_object_unref (sack);
 }
 
