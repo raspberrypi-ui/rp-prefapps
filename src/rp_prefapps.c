@@ -198,15 +198,28 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
 
 static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc)
 {
+#define ERR_MAX 100
+
     PkResults *results;
     PkError *pkerror;
     GError *error = NULL;
-    gchar *buf;
+    gchar *buf, *err;
+    const gchar *pke;
 
     results = pk_task_generic_finish (task, res, &error);
     if (error != NULL)
     {
-        buf = g_strdup_printf (_("Error %s - %s"), desc, error->message);
+        if (strlen (error->message) < ERR_MAX)
+            err = g_strdup (error->message);
+        else
+        {
+            err = g_strndup (error->message, ERR_MAX);
+            err[ERR_MAX - 3] = '.';
+            err[ERR_MAX - 2] = '.';
+            err[ERR_MAX - 1] = '.';
+        }
+        buf = g_strdup_printf (_("Error %s - %s"), desc, err);
+        g_free (err);
         message (buf, 1, -1);
         g_free (buf);
         return NULL;
@@ -215,7 +228,18 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc)
     pkerror = pk_results_get_error_code (results);
     if (pkerror != NULL)
     {
-        buf = g_strdup_printf (_("Error %s - %s"), desc, pk_error_get_details (pkerror));
+        pke = pk_error_get_details (pkerror);
+        if (strlen (pke) < ERR_MAX)
+            err = g_strdup (pke);
+        else
+        {
+            err = g_strndup (pke, ERR_MAX);
+            err[ERR_MAX - 3] = '.';
+            err[ERR_MAX - 2] = '.';
+            err[ERR_MAX - 1] = '.';
+        }
+        buf = g_strdup_printf (_("Error %s - %s"), desc, err);
+        g_free (err);
         message (buf, 1, -1);
         g_free (buf);
         return NULL;
