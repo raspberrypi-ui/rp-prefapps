@@ -586,23 +586,24 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
         }
     }
 
-    // data now all loaded - show sorted category list
+    // data now all loaded - set up filtered and sorted package list
+    spackages = gtk_tree_model_sort_new_with_model (GTK_TREE_MODEL (packages));
+    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (spackages), PACK_CELL_NAME, GTK_SORT_ASCENDING);
+    fpackages = gtk_tree_model_filter_new (GTK_TREE_MODEL (spackages), NULL);
+    gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fpackages), (GtkTreeModelFilterVisibleFunc) match_category, NULL, NULL);
+    gtk_tree_view_set_model (GTK_TREE_VIEW (pack_tv), GTK_TREE_MODEL (fpackages));
+
+    // set up filtered and sorted package list
     scateg = gtk_tree_model_sort_new_with_model (GTK_TREE_MODEL (categories));
     gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (scateg), CAT_NAME, category_sort, NULL, NULL);
     gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (scateg), CAT_NAME, GTK_SORT_ASCENDING);
     fcateg = gtk_tree_model_filter_new (GTK_TREE_MODEL (scateg), NULL);
     gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fcateg), (GtkTreeModelFilterVisibleFunc) packs_in_cat, NULL, NULL);
     gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (fcateg));
-    gtk_tree_model_get_iter_first (GTK_TREE_MODEL (scateg), &iter);
-    gtk_tree_selection_select_iter (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), &iter);
 
-    // set up category filter for package list
-    spackages = gtk_tree_model_sort_new_with_model (GTK_TREE_MODEL (packages));
-    gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (spackages), PACK_CELL_NAME, GTK_SORT_ASCENDING);
-    fpackages = gtk_tree_model_filter_new (GTK_TREE_MODEL (spackages), NULL);
-    gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fpackages), (GtkTreeModelFilterVisibleFunc) match_category, NULL, NULL);
-    gtk_tree_view_set_model (GTK_TREE_VIEW (pack_tv), GTK_TREE_MODEL (fpackages));
-    category_selected (NULL, NULL);
+    // select 'All Programs' category
+    gtk_tree_model_get_iter_first (GTK_TREE_MODEL (fcateg), &iter);
+    gtk_tree_selection_select_iter (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), &iter);
 
     gtk_widget_set_sensitive (cancel_btn, TRUE);
     gtk_widget_set_sensitive (install_btn, TRUE);
@@ -919,8 +920,10 @@ static void package_selected (GtkTreeView *tv, gpointer ptr)
 
 static void category_selected (GtkTreeView *tv, gpointer ptr)
 {
-    gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv))));
-    package_selected (NULL, NULL);
+    GtkTreeModel *model;
+
+    model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
+    gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (model));
 }
 
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data)
@@ -1060,13 +1063,13 @@ int main (int argc, char *argv[])
     gtk_tree_view_column_set_sizing (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), GTK_TREE_VIEW_COLUMN_FIXED);
     gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), 50);
 
-    g_signal_connect (cat_tv, "cursor-changed", G_CALLBACK (category_selected), NULL);
     g_signal_connect (crb, "toggled", G_CALLBACK (install_toggled), NULL);
     g_signal_connect (cancel_btn, "clicked", G_CALLBACK (cancel), NULL);
     g_signal_connect (install_btn, "clicked", G_CALLBACK (install), NULL);
     g_signal_connect (info_btn, "clicked", G_CALLBACK (info), NULL);
     g_signal_connect (main_dlg, "delete_event", G_CALLBACK (cancel), NULL);
-    g_signal_connect (pack_tv, "cursor-changed", G_CALLBACK (package_selected), NULL);
+    g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), "changed", G_CALLBACK (category_selected), NULL);
+    g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (pack_tv)), "changed", G_CALLBACK (package_selected), NULL);
     g_signal_connect (search_te, "changed", G_CALLBACK (search_update), NULL);
 
     gtk_widget_set_sensitive (info_btn, FALSE);
