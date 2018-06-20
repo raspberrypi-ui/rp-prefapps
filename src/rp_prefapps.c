@@ -104,6 +104,7 @@ static gboolean ok_clicked (GtkButton *button, gpointer data);
 static void message (char *msg, int wait, int prog);
 static const char *cat_icon_name (char *category);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
+static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 static void package_selected (GtkTreeView *tv, gpointer ptr);
 static void category_selected (GtkTreeView *tv, gpointer ptr);
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data);
@@ -539,7 +540,7 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     PkDetails *item;
     GPtrArray *array;
     GtkTreeIter iter;
-    GtkTreeModel *scateg, *spackages, *fpackages;
+    GtkTreeModel *scateg, *fcateg, *spackages, *fpackages;
     gboolean valid;
     gchar *pid, *rid, *sum;
     const gchar *package_id;
@@ -589,7 +590,9 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     scateg = gtk_tree_model_sort_new_with_model (GTK_TREE_MODEL (categories));
     gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (scateg), CAT_NAME, category_sort, NULL, NULL);
     gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (scateg), CAT_NAME, GTK_SORT_ASCENDING);
-    gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (scateg));
+    fcateg = gtk_tree_model_filter_new (GTK_TREE_MODEL (scateg), NULL);
+    gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fcateg), (GtkTreeModelFilterVisibleFunc) packs_in_cat, NULL, NULL);
+    gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (fcateg));
     gtk_tree_model_get_iter_first (GTK_TREE_MODEL (scateg), &iter);
     gtk_tree_selection_select_iter (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), &iter);
 
@@ -796,6 +799,41 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     g_free (desc);
     g_free (cat);
     return res;
+}
+
+static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
+{
+    GtkTreeIter piter;
+    gboolean valid;
+    gchar *pcat, *tcat, *id, *rid;
+
+	// get the category under test
+    gtk_tree_model_get (model, iter, CAT_NAME, &tcat, -1);
+
+    // always show All Programs category
+    if (!g_strcmp0 (tcat, _("All Programs"))) return TRUE;
+
+	// loop through all packages in database - show category only if it matches a program with a valid ID
+    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &piter);
+    while (valid)
+    {
+        gtk_tree_model_get (GTK_TREE_MODEL (packages), &piter, PACK_CATEGORY, &pcat, PACK_PACKAGE_ID, &id, PACK_RPACKAGE_ID, &rid, -1);
+        if (!g_strcmp0 (pcat, tcat) && (g_strcmp0 (id, "none") || g_strcmp0 (rid, "none")))
+        {
+			g_free (tcat);
+			g_free (pcat);
+			g_free (id);
+			g_free (rid);
+			return TRUE;
+		}
+
+        g_free (pcat);
+		g_free (id);
+		g_free (rid);
+        valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &piter);
+    }
+    g_free (tcat);
+    return FALSE;
 }
 
 /*----------------------------------------------------------------------------*/
