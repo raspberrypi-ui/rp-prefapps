@@ -3,8 +3,8 @@ bin_PROGRAMS = rp_prefapps
 rp_prefapps_CFLAGS = \
 	-I$(top_srcdir) \
 	-DPACKAGE_LIB_DIR=\""$(libdir)"\" \
-	-DPACKAGE_DATA_DIR=\""$(datadir)/rp_prefapps"\" \
-	-DPACKAGE_UI_DIR=\""$(datadir)/rp_prefapps/ui"\" \
+	-DPACKAGE_DATA_DIR=\""$(datadir)/rp-prefapps"\" \
+	-DPACKAGE_UI_DIR=\""$(datadir)/rp-prefapps/ui"\" \
 	-DPACKAGE_BIN_DIR=\""$(bindir)"\" \
 	-DPACKAGE_LOCALE_DIR=\""$(prefix)/$(DATADIRNAME)/locale"\" \
 	$(PACKAGE_CFLAGS) \
@@ -12,7 +12,7 @@ rp_prefapps_CFLAGS = \
 
 rp_prefapps_SOURCES = rp_prefapps.c
 
-rp_prefapps_includedir = $(includedir)/rp_prefapps
+rp_prefapps_includedir = $(includedir)/rp-prefapps
 
 rp_prefapps_include_HEADERS =
 
