@@ -1,4 +1,4 @@
-uidir = $(datadir)/rp_prefapps
+uidir = $(datadir)/rp-prefapps
 
 ui_in_files = 	rp_prefapps.ui \
 				prefapps.conf \
