@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rp_prefapps 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-15 12:07+0100\n"
+"POT-Creation-Date: 2018-06-25 07:53+0100\n"
 "PO-Revision-Date: 2018-06-15 12:07+0100\n"
 "Last-Translator: Simon Long <simon@raspberrypi.org>\n"
 "Language-Team: English (British)\n"
@@ -17,167 +17,164 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/rp_prefapps.c:146 ../src/rp_prefapps.c:234
+#: ../src/rp_prefapps.c:148 ../src/rp_prefapps.c:262
 msgid "Updating package data - please wait..."
 msgstr "Updating package data - please wait..."
 
-#: ../src/rp_prefapps.c:152 ../src/rp_prefapps.c:247 ../src/rp_prefapps.c:368
+#: ../src/rp_prefapps.c:154 ../src/rp_prefapps.c:275 ../src/rp_prefapps.c:413
 msgid "Finding packages - please wait..."
 msgstr "Finding packages - please wait..."
 
-#: ../src/rp_prefapps.c:158 ../src/rp_prefapps.c:260
+#: ../src/rp_prefapps.c:160 ../src/rp_prefapps.c:295
 msgid "Updating application - please wait..."
 msgstr "Updating application - please wait..."
 
-#: ../src/rp_prefapps.c:164 ../src/rp_prefapps.c:429
+#: ../src/rp_prefapps.c:166 ../src/rp_prefapps.c:510
 msgid "Reading package details - please wait..."
 msgstr "Reading package details - please wait..."
 
-#: ../src/rp_prefapps.c:172
+#: ../src/rp_prefapps.c:174
 #, c-format
 msgid "%s %s - please wait..."
 msgstr "%s %s - please wait..."
 
-#: ../src/rp_prefapps.c:172
+#: ../src/rp_prefapps.c:174
 msgid "Installing"
 msgstr "Installing"
 
-#: ../src/rp_prefapps.c:172
+#: ../src/rp_prefapps.c:174
 msgid "Downloading"
 msgstr "Downloading"
 
-#: ../src/rp_prefapps.c:173
+#: ../src/rp_prefapps.c:175
 msgid "packages"
 msgstr "packages"
 
-#: ../src/rp_prefapps.c:185
+#: ../src/rp_prefapps.c:187
 #, c-format
 msgid "Removing %s - please wait..."
 msgstr "Removing %s - please wait..."
 
-#: ../src/rp_prefapps.c:189 ../src/rp_prefapps.c:597 ../src/rp_prefapps.c:611
+#: ../src/rp_prefapps.c:191 ../src/rp_prefapps.c:678 ../src/rp_prefapps.c:692
 msgid "Removing packages - please wait..."
 msgstr "Removing packages - please wait..."
 
-#: ../src/rp_prefapps.c:208 ../src/rp_prefapps.c:217
+#: ../src/rp_prefapps.c:223 ../src/rp_prefapps.c:244
 #, c-format
 msgid "Error %s - %s"
 msgstr "Error %s - %s"
 
-#: ../src/rp_prefapps.c:245
+#: ../src/rp_prefapps.c:273
 msgid "updating package data"
 msgstr "updating package data"
 
-#: ../src/rp_prefapps.c:257 ../src/rp_prefapps.c:399
+#: ../src/rp_prefapps.c:286 ../src/rp_prefapps.c:445
 msgid "finding packages"
 msgstr "finding packages"
 
-#: ../src/rp_prefapps.c:269
-msgid "updating application"
-msgstr "updating application"
-
 #. check that category matches
-#: ../src/rp_prefapps.c:297 ../src/rp_prefapps.c:444 ../src/rp_prefapps.c:445
-#: ../src/rp_prefapps.c:691 ../src/rp_prefapps.c:699
+#. always show All Programs category
+#: ../src/rp_prefapps.c:340 ../src/rp_prefapps.c:527 ../src/rp_prefapps.c:528
+#: ../src/rp_prefapps.c:772 ../src/rp_prefapps.c:780 ../src/rp_prefapps.c:815
 msgid "All Programs"
 msgstr "All Programs"
 
-#: ../src/rp_prefapps.c:364
+#: ../src/rp_prefapps.c:387
+#, c-format
+msgid ""
+"<b>%s</b>\n"
+"%s\n"
+"Approx. size : %s MB"
+msgstr ""
+"<b>%s</b>\n"
+"%s\n"
+"Approx. size : %s MB"
+
+#: ../src/rp_prefapps.c:409
 msgid "Unable to open package data file"
 msgstr "Unable to open package data file"
 
-#: ../src/rp_prefapps.c:466
+#: ../src/rp_prefapps.c:549
 msgid "reading package details"
 msgstr "reading package details"
 
-#: ../src/rp_prefapps.c:482
-#, c-format
-msgid ""
-"<b>%s</b>\n"
-"%s\n"
-"Approx. size : %s MB"
-msgstr ""
-"<b>%s</b>\n"
-"%s\n"
-"Approx. size : %s MB"
-
-#: ../src/rp_prefapps.c:590
+#: ../src/rp_prefapps.c:671
 msgid "Installing packages - please wait..."
 msgstr "Installing packages - please wait..."
 
-#: ../src/rp_prefapps.c:607
+#: ../src/rp_prefapps.c:688
 msgid "installing packages"
 msgstr "installing packages"
 
-#: ../src/rp_prefapps.c:615
+#: ../src/rp_prefapps.c:696
 msgid "Installation complete"
 msgstr "Installation complete"
 
-#: ../src/rp_prefapps.c:620
+#: ../src/rp_prefapps.c:701
 msgid "removing packages"
 msgstr "removing packages"
 
-#: ../src/rp_prefapps.c:623
+#: ../src/rp_prefapps.c:704
 msgid "Installation and removal complete"
 msgstr "Installation and removal complete"
 
-#: ../src/rp_prefapps.c:625
+#: ../src/rp_prefapps.c:706
 msgid "Removal complete"
 msgstr "Removal complete"
 
-#: ../src/rp_prefapps.c:634
+#: ../src/rp_prefapps.c:715
 msgid "Programming"
 msgstr "Programming"
 
-#: ../src/rp_prefapps.c:637
+#: ../src/rp_prefapps.c:718
 msgid "Office"
 msgstr "Office"
 
-#: ../src/rp_prefapps.c:640
+#: ../src/rp_prefapps.c:721
 msgid "Internet"
 msgstr "Internet"
 
-#: ../src/rp_prefapps.c:643
+#: ../src/rp_prefapps.c:724
 msgid "Games"
 msgstr "Games"
 
-#: ../src/rp_prefapps.c:646
+#: ../src/rp_prefapps.c:727
 msgid "Other"
 msgstr "Other"
 
-#: ../src/rp_prefapps.c:649
+#: ../src/rp_prefapps.c:730
 msgid "Accessories"
 msgstr "Accessories"
 
-#: ../src/rp_prefapps.c:652
+#: ../src/rp_prefapps.c:733
 msgid "Sound & Video"
 msgstr "Sound & Video"
 
-#: ../src/rp_prefapps.c:655
+#: ../src/rp_prefapps.c:736
 msgid "System Tools"
 msgstr "System Tools"
 
-#: ../src/rp_prefapps.c:658
+#: ../src/rp_prefapps.c:739
 msgid "Engineering"
 msgstr "Engineering"
 
-#: ../src/rp_prefapps.c:661
+#: ../src/rp_prefapps.c:742
 msgid "Education"
 msgstr "Education"
 
-#: ../src/rp_prefapps.c:664
+#: ../src/rp_prefapps.c:745
 msgid "Graphics"
 msgstr "Graphics"
 
-#: ../src/rp_prefapps.c:667
+#: ../src/rp_prefapps.c:748
 msgid "Science & Maths"
 msgstr "Science & Maths"
 
-#: ../src/rp_prefapps.c:670
+#: ../src/rp_prefapps.c:751
 msgid "Preferences"
 msgstr "Preferences"
 
-#: ../src/rp_prefapps.c:834
+#: ../src/rp_prefapps.c:951
 #, c-format
 msgid ""
 "<b>%s</b>\n"
@@ -188,15 +185,15 @@ msgstr ""
 "%s\n"
 "Approx. size : %s MB%s"
 
-#: ../src/rp_prefapps.c:870
+#: ../src/rp_prefapps.c:986
 msgid "No additional information available for this package."
 msgstr "No additional information available for this package."
 
-#: ../src/rp_prefapps.c:940
+#: ../src/rp_prefapps.c:1056
 msgid "Application"
 msgstr "Application"
 
-#: ../src/rp_prefapps.c:941
+#: ../src/rp_prefapps.c:1057
 msgid "Install"
 msgstr "Install"
 
@@ -221,3 +218,10 @@ msgstr "_Cancel"
 #: ../data/rp_prefapps.desktop.in.h:2
 msgid "Install additional programs recommended for use on the Pi"
 msgstr "Install additional programs recommended for use on the Pi"
+
+#: ../data/pwdrpp.sh:6
+msgid "Password Required"
+msgstr "Password Required"
+
+#~ msgid "updating application"
+#~ msgstr "updating application"
