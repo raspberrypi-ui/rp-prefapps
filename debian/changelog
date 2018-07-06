@@ -1,3 +1,9 @@
+rp-prefapps (0.2) stretch; urgency=medium
+
+  * Move password script into lib subdir
+
+ -- Simon Long <simon@raspberrypi.org>  Fri, 06 Jul 2018 09:38:57 +0100
+
 rp-prefapps (0.1) stretch; urgency=medium
 
   * Initial release
