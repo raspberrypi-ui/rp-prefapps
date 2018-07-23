@@ -1,3 +1,9 @@
+rp-prefapps (0.3) stretch; urgency=medium
+
+  * Update package name for mu
+
+ -- Simon Long <simon@raspberrypi.org>  Mon, 23 Jul 2018 14:43:11 +0100
+
 rp-prefapps (0.2) stretch; urgency=medium
 
   * Move password script into lib subdir
