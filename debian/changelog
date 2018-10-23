@@ -1,3 +1,9 @@
+rp-prefapps (0.4) stretch; urgency=medium
+
+  * Add support for additional packages and locale-dependent installs
+
+ -- Simon Long <simon@raspberrypi.org>  Tue, 23 Oct 2018 14:31:31 +0100
+
 rp-prefapps (0.3) stretch; urgency=medium
 
   * Update package name for mu
