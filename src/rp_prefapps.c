@@ -86,6 +86,8 @@ GtkListStore *categories, *packages;
 guint n_inst, n_uninst;
 gchar **pinst, **puninst;
 
+char *lang, *lang_loc;
+
 /*----------------------------------------------------------------------------*/
 /* Prototypes                                                                 */
 /*----------------------------------------------------------------------------*/
@@ -369,13 +371,30 @@ static void read_data_file (PkTask *task)
             // add additional packages to array of names
             if (adds && *adds)
             {
-                // additional packages separated by semicolons
+                // additional packages separated by commas
                 addspl = g_strdup (adds);
                 add = strtok (addspl, ",");
                 while (add)
                 {
-                    pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
-                    pnames[pcount++] = g_strdup (add);
+                    if (strchr (add, '%'))
+                    {
+                        // substitute %s with locale strings
+                        if (*lang)
+                        {
+                            pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
+                            pnames[pcount++] = g_strdup_printf (add, lang);
+                        }
+                        if (*lang_loc)
+                        {
+                            pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
+                            pnames[pcount++] = g_strdup_printf (add, lang_loc);
+                        }
+                    }
+                    else
+                    {
+                        pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
+                        pnames[pcount++] = g_strdup (add);
+                    }
                     add = strtok (NULL, ",");
                 }
                 g_free (addspl);
@@ -529,7 +548,27 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
                 addpk = strtok (addpks, ",");
                 while (addpk)
                 {
-                    if (match_pid (addpk, package_id))
+                    gboolean matched = FALSE;
+                    char *str;
+                    if (strchr (addpk, '%'))
+                    {
+                        // substitute %s with locale strings
+                        if (*lang)
+                        {
+                            str = g_strdup_printf (addpk, lang);
+                            if (match_pid (str, package_id)) matched = TRUE;
+                            g_free (str);
+                        }
+                        if (*lang_loc)
+                        {
+                            str = g_strdup_printf (addpk, lang_loc);
+                            if (match_pid (str, package_id)) matched = TRUE;
+                            g_free (str);
+                        }
+                    }
+                    else if (match_pid (addpk, package_id)) matched = TRUE;
+
+                    if (matched)
                     {
                         if (!g_strcmp0 (addids, "none"))
                             gtk_list_store_set (packages, &iter, PACK_ADD_IDS, package_id, -1);
@@ -1099,6 +1138,37 @@ static gboolean search_update (GtkEditable *editable, gpointer userdata)
     gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv))));
 }
 
+static void get_locales (void)
+{
+    char *lstring = setlocale (LC_CTYPE, NULL);
+    if (lstring && *lstring)
+    {
+        char *lastr = strtok (lstring, "_");
+        char *lostr = strtok (NULL, ". ");
+        if (lastr && *lastr)
+        {
+            lang = g_strdup (lastr);
+            if (lostr && *lostr)
+            {
+                char *str = g_ascii_strdown (lostr, -1);
+                lang_loc = g_strdup_printf ("%s-%s", lang, str);
+                g_free (str);
+            }
+            else lang_loc = g_strdup ("");
+        }
+        else
+        {
+            lang = g_strdup ("");
+            lang_loc = g_strdup ("");
+        }
+    }
+    else
+    {
+        lang = g_strdup ("");
+        lang_loc = g_strdup ("");
+    }
+}
+
 /*----------------------------------------------------------------------------*/
 /* Main window                                                                */
 /*----------------------------------------------------------------------------*/
@@ -1114,6 +1184,7 @@ int main (int argc, char *argv[])
     bind_textdomain_codeset ( GETTEXT_PACKAGE, "UTF-8" );
     textdomain ( GETTEXT_PACKAGE );
 #endif
+    get_locales ();
 
     // GTK setup
     gdk_threads_init ();
