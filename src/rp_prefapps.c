@@ -70,7 +70,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CAT_ICON            0
 #define CAT_NAME            1
 
-#define NO_UPDATE
+//#define NO_UPDATE
 
 /* Controls */
 
