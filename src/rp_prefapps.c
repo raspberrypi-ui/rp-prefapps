@@ -64,9 +64,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define PACK_RPACKAGE_NAME  11
 #define PACK_RPACKAGE_ID    12
 #define PACK_INIT_INST      13
+#define PACK_ADD_NAMES      14
+#define PACK_ADD_IDS        15
 
 #define CAT_ICON            0
 #define CAT_NAME            1
+
+#define NO_UPDATE
 
 /* Controls */
 
@@ -262,6 +266,10 @@ static gboolean update_self (gpointer data)
     message (_("Updating package data - please wait..."), 0 , -1);
 
     task = pk_task_new ();
+#ifdef NO_UPDATE
+	read_data_file (task);
+	return FALSE;
+#endif
     pk_client_refresh_cache_async (PK_CLIENT (task), TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) refresh_cache_done, NULL);
     return FALSE;
 }
@@ -320,7 +328,7 @@ static void read_data_file (PkTask *task)
     GdkPixbuf *icon;
     GKeyFile *kf;
     gchar **groups, **pnames;
-    gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *size;
+    gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *size, *adds, *add, *addspl;
     gboolean new;
     int pcount = 0, gcount = 0;
 
@@ -350,12 +358,28 @@ static void read_data_file (PkTask *task)
             pack = g_key_file_get_value (kf, groups[gcount], "package", NULL);
             rpack = g_key_file_get_value (kf, groups[gcount], "rpackage", NULL);
             size = g_key_file_get_value (kf, groups[gcount], "size", NULL);
+            adds = g_key_file_get_value (kf, groups[gcount], "additional", NULL);
 
             // create array of package names
             pnames = realloc (pnames, (pcount + 1 + (rpack ? 2 : 1)) * sizeof (gchar *));
             pnames[pcount++] = g_strdup (pack);
             if (rpack) pnames[pcount++] = g_strdup (rpack);
             pnames[pcount] = NULL;
+
+            // add additional packages to array of names
+            if (adds && *adds)
+            {
+                // additional packages separated by semicolons
+                addspl = g_strdup (adds);
+                add = strtok (addspl, ",");
+                while (add)
+                {
+                    pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
+                    pnames[pcount++] = g_strdup (add);
+                    add = strtok (NULL, ",");
+                }
+                g_free (addspl);
+            }
 
             // add unique entries to category list
             new = TRUE;
@@ -385,7 +409,22 @@ static void read_data_file (PkTask *task)
             if (!icon) icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, 0, NULL);
             gtk_list_store_append (packages, &entry);
             buf = g_strdup_printf (_("<b>%s</b>\n%s\nApprox. size : %s MB"), name, desc, size);
-            gtk_list_store_set (packages, &entry, PACK_ICON, icon, PACK_CELL_TEXT, buf, PACK_INSTALLED, FALSE, PACK_INIT_INST, FALSE, PACK_CATEGORY, cat, PACK_PACKAGE_NAME, pack, PACK_PACKAGE_ID, "none", PACK_RPACKAGE_NAME, rpack, PACK_RPACKAGE_ID, "none", PACK_CELL_NAME, name, PACK_CELL_DESC, desc, PACK_SIZE, size, -1);
+            gtk_list_store_set (packages, &entry,
+                PACK_ICON, icon,
+                PACK_CELL_TEXT, buf,
+                PACK_INSTALLED, FALSE,
+                PACK_INIT_INST, FALSE,
+                PACK_CATEGORY, cat,
+                PACK_PACKAGE_NAME, pack,
+                PACK_PACKAGE_ID, "none",
+                PACK_RPACKAGE_NAME, rpack,
+                PACK_RPACKAGE_ID, "none",
+                PACK_CELL_NAME, name,
+                PACK_CELL_DESC, desc,
+                PACK_SIZE, size,
+                PACK_ADD_NAMES, adds,
+                PACK_ADD_IDS, "none",
+                -1);
             if (icon) g_object_unref (icon);
 
             g_free (buf);
@@ -396,6 +435,7 @@ static void read_data_file (PkTask *task)
             g_free (pack);
             g_free (rpack);
             g_free (size);
+            g_free (adds);
 
             gcount++;
         }
@@ -423,7 +463,7 @@ static gboolean match_pid (char *name, const char *pid)
 
     if (name == NULL) return FALSE;
     buf = g_strdup (pid);
-    strtok (buf, ";");
+    g_strdelimit (buf, ";", 0);
     if (!g_strcmp0 (buf, name)) ret = TRUE;
     g_free (buf);
     return ret;
@@ -440,6 +480,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     gchar **ids;
     gboolean valid, inst;
     gchar *pack, *rpack, *package_id;
+    gchar *addpks, *addpk, *addids, *addlist;
     int i;
 
     results = error_handler (task, res, _("finding packages"), FALSE);
@@ -477,6 +518,37 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
                 g_free (rpack);
             }
         }
+
+        // fill in this id for any additional packages which match it
+        valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
+        while (valid)
+        {
+            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_ADD_NAMES, &addpks, PACK_ADD_IDS, &addids, -1);
+            if (addpks && *addpks)
+            {
+                addpk = strtok (addpks, ",");
+                while (addpk)
+                {
+                    if (match_pid (addpk, package_id))
+                    {
+                        if (!g_strcmp0 (addids, "none"))
+                            gtk_list_store_set (packages, &iter, PACK_ADD_IDS, package_id, -1);
+                        else
+                        {
+                            addlist = g_strdup_printf ("%s,%s", addids, package_id);
+                            gtk_list_store_set (packages, &iter, PACK_ADD_IDS, addlist, -1);
+                            g_free (addlist);
+                        }
+                        break;
+                    }
+                    addpk = strtok (NULL, ",");
+                }
+            }
+            valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
+            g_free (addpks);
+            g_free (addids);
+        }
+
         g_free (package_id);
     }
 
@@ -621,7 +693,7 @@ static void install (GtkButton* btn, gpointer ptr)
     PkTask *task;
     GtkTreeIter iter;
     gboolean valid, state, init;
-    gchar *id, *rid;
+    gchar *id, *rid, *addid, *addids;
 
     gtk_widget_set_sensitive (info_btn, FALSE);
     gtk_widget_set_sensitive (cancel_btn, FALSE);
@@ -637,7 +709,7 @@ static void install (GtkButton* btn, gpointer ptr)
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
     while (valid)
     {
-        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &state, PACK_INIT_INST, &init, PACK_PACKAGE_ID, &id, PACK_RPACKAGE_ID, &rid, -1);
+        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &state, PACK_INIT_INST, &init, PACK_PACKAGE_ID, &id, PACK_RPACKAGE_ID, &rid, PACK_ADD_IDS, &addid, -1);
         if (!init)
         {
             if (state)
@@ -646,6 +718,18 @@ static void install (GtkButton* btn, gpointer ptr)
                 pinst = realloc (pinst, (n_inst + 2) * sizeof (gchar *));
                 pinst[n_inst++] = g_strdup (id);
                 pinst[n_inst] = NULL;
+
+                if (g_strcmp0 (addid, "none"))
+                {
+                    addids = strtok (addid, ",");
+                    while (addids)
+                    {
+                        pinst = realloc (pinst, (n_inst + 2) * sizeof (gchar *));
+                        pinst[n_inst++] = g_strdup (addids);
+                        pinst[n_inst] = NULL;
+                        addids = strtok (NULL, ",");
+                    }
+                }
             }
         }
         else
@@ -659,6 +743,18 @@ static void install (GtkButton* btn, gpointer ptr)
                 else
                     puninst[n_uninst++] = g_strdup (id);
                 puninst[n_uninst] = NULL;
+
+                if (g_strcmp0 (addid, "none"))
+                {
+                    addids = strtok (addid, ",");
+                    while (addids)
+                    {
+                        puninst = realloc (puninst, (n_uninst + 2) * sizeof (gchar *));
+                        puninst[n_uninst++] = g_strdup (addids);
+                        puninst[n_uninst] = NULL;
+                        addids = strtok (NULL, ",");
+                    }
+                }
             }
         }
         g_free (id);
@@ -1039,7 +1135,7 @@ int main (int argc, char *argv[])
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    packages = gtk_list_store_new (14, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
+    packages = gtk_list_store_new (16, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING);
 
     // set up tree views
     crp = gtk_cell_renderer_pixbuf_new ();
