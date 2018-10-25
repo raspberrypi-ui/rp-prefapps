@@ -12,6 +12,7 @@ ui_in_files = 	rp_prefapps.ui \
 				scratch.png \
 				scratch2.png \
 				sense_emu_gui.png \
+				smartsim.png \
 				sonic-pi.png \
 				thonny.png \
 				vncviewer48x48.png \
