@@ -66,6 +66,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define PACK_INIT_INST      13
 #define PACK_ADD_NAMES      14
 #define PACK_ADD_IDS        15
+#define PACK_REBOOT         16
 
 #define CAT_ICON            0
 #define CAT_NAME            1
@@ -75,7 +76,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* Controls */
 
 static GtkWidget *main_dlg, *cat_tv, *pack_tv, *info_btn, *cancel_btn, *install_btn, *search_te;
-static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn;
+static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn, *msg_cancel;
 
 /* Data stores for tree views */
 
@@ -87,6 +88,7 @@ guint n_inst, n_uninst;
 gchar **pinst, **puninst;
 
 char *lang, *lang_loc;
+gboolean needs_reboot;
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes                                                                 */
@@ -107,6 +109,7 @@ static void install (GtkButton* btn, gpointer ptr);
 static void install_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data);
 static gboolean ok_clicked (GtkButton *button, gpointer data);
+static gboolean reboot_clicked (GtkButton *button, gpointer data);
 static void message (char *msg, int wait, int prog);
 static const char *cat_icon_name (char *category);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
@@ -331,7 +334,7 @@ static void read_data_file (PkTask *task)
     GKeyFile *kf;
     gchar **groups, **pnames;
     gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *size, *adds, *add, *addspl;
-    gboolean new;
+    gboolean new, reboot;
     int pcount = 0, gcount = 0;
 
     loc = setlocale (0, "");
@@ -361,6 +364,7 @@ static void read_data_file (PkTask *task)
             rpack = g_key_file_get_value (kf, groups[gcount], "rpackage", NULL);
             size = g_key_file_get_value (kf, groups[gcount], "size", NULL);
             adds = g_key_file_get_value (kf, groups[gcount], "additional", NULL);
+            reboot = g_key_file_get_boolean (kf, groups[gcount], "reboot", NULL);
 
             // create array of package names
             pnames = realloc (pnames, (pcount + 1 + (rpack ? 2 : 1)) * sizeof (gchar *));
@@ -443,6 +447,7 @@ static void read_data_file (PkTask *task)
                 PACK_SIZE, size,
                 PACK_ADD_NAMES, adds,
                 PACK_ADD_IDS, "none",
+                PACK_REBOOT, reboot,
                 -1);
             if (icon) g_object_unref (icon);
 
@@ -731,7 +736,7 @@ static void install (GtkButton* btn, gpointer ptr)
 {
     PkTask *task;
     GtkTreeIter iter;
-    gboolean valid, state, init;
+    gboolean valid, state, init, reboot;
     gchar *id, *rid, *addid, *addids;
 
     gtk_widget_set_sensitive (info_btn, FALSE);
@@ -748,7 +753,7 @@ static void install (GtkButton* btn, gpointer ptr)
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
     while (valid)
     {
-        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &state, PACK_INIT_INST, &init, PACK_PACKAGE_ID, &id, PACK_RPACKAGE_ID, &rid, PACK_ADD_IDS, &addid, -1);
+        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &state, PACK_INIT_INST, &init, PACK_PACKAGE_ID, &id, PACK_RPACKAGE_ID, &rid, PACK_ADD_IDS, &addid, PACK_REBOOT, &reboot, -1);
         if (!init)
         {
             if (state)
@@ -757,6 +762,7 @@ static void install (GtkButton* btn, gpointer ptr)
                 pinst = realloc (pinst, (n_inst + 2) * sizeof (gchar *));
                 pinst[n_inst++] = g_strdup (id);
                 pinst[n_inst] = NULL;
+                if (reboot) needs_reboot = TRUE;
 
                 if (g_strcmp0 (addid, "none"))
                 {
@@ -828,7 +834,10 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 
         pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
     }
-    else message (_("Installation complete"), 1, -1);
+    else if (needs_reboot)
+        message (_("Installation complete.\nOne of the installed packages requires a reboot.\nWould you like to reboot now?"), 2, -1);
+    else
+        message (_("Installation complete"), 1, -1);
 }
 
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
@@ -836,7 +845,12 @@ static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (!error_handler (task, res, _("removing packages"), FALSE)) return;
 
     if (n_inst)
-        message (_("Installation and removal complete"), 1, -1);
+    {
+        if (needs_reboot)
+            message (_("Installation and removal complete.\nOne of the installed packages requires a reboot.\nWould you like to reboot now?"), 2, -1);
+        else
+            message (_("Installation and removal complete"), 1, -1);
+    }
     else
         message (_("Removal complete"), 1, -1);
 }
@@ -984,6 +998,15 @@ static gboolean ok_clicked (GtkButton *button, gpointer data)
     return FALSE;
 }
 
+static gboolean reboot_clicked (GtkButton *button, gpointer data)
+{
+    gtk_widget_destroy (GTK_WIDGET (msg_dlg));
+    msg_dlg = NULL;
+    gtk_main_quit ();
+    system ("reboot");
+    return FALSE;
+}
+
 static void message (char *msg, int wait, int prog)
 {
     if (!msg_dlg)
@@ -1009,6 +1032,7 @@ static void message (char *msg, int wait, int prog)
         msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "msg_lbl");
         msg_pb = (GtkWidget *) gtk_builder_get_object (builder, "msg_pb");
         msg_btn = (GtkWidget *) gtk_builder_get_object (builder, "msg_btn");
+        msg_cancel = (GtkWidget *) gtk_builder_get_object (builder, "msg_cancel");
 
         gtk_label_set_text (GTK_LABEL (msg_msg), msg);
 
@@ -1019,12 +1043,25 @@ static void message (char *msg, int wait, int prog)
 
     if (wait)
     {
-        g_signal_connect (msg_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
         gtk_widget_set_visible (msg_pb, FALSE);
+        if (wait > 1)
+        {
+            gtk_button_set_label (GTK_BUTTON (msg_btn), "_Yes");
+            g_signal_connect (msg_btn, "clicked", G_CALLBACK (reboot_clicked), NULL);
+            g_signal_connect (msg_cancel, "clicked", G_CALLBACK (ok_clicked), NULL);
+            gtk_widget_set_visible (msg_cancel, TRUE);
+        }
+        else
+        {
+            gtk_button_set_label (GTK_BUTTON (msg_btn), "_OK");
+            g_signal_connect (msg_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
+            gtk_widget_set_visible (msg_cancel, FALSE);
+        }
         gtk_widget_set_visible (msg_btn, TRUE);
     }
     else
     {
+        gtk_widget_set_visible (msg_cancel, FALSE);
         gtk_widget_set_visible (msg_btn, FALSE);
         gtk_widget_set_visible (msg_pb, TRUE);
         if (prog == -1) gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
@@ -1185,6 +1222,7 @@ int main (int argc, char *argv[])
     textdomain ( GETTEXT_PACKAGE );
 #endif
     get_locales ();
+    needs_reboot = FALSE;
 
     // GTK setup
     gdk_threads_init ();
@@ -1206,7 +1244,7 @@ int main (int argc, char *argv[])
 
     // create list stores
     categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
-    packages = gtk_list_store_new (16, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING);
+    packages = gtk_list_store_new (17, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
 
     // set up tree views
     crp = gtk_cell_renderer_pixbuf_new ();
