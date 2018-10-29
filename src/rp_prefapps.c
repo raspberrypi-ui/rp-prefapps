@@ -835,7 +835,7 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
         pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
     }
     else if (needs_reboot)
-        message (_("Installation complete.\nOne of the installed packages requires a reboot.\nWould you like to reboot now?"), 2, -1);
+        message (_("Installation complete.\nAn installed package requires a reboot.\nWould you like to reboot now?"), 2, -1);
     else
         message (_("Installation complete"), 1, -1);
 }
@@ -847,7 +847,7 @@ static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (n_inst)
     {
         if (needs_reboot)
-            message (_("Installation and removal complete.\nOne of the installed packages requires a reboot.\nWould you like to reboot now?"), 2, -1);
+            message (_("Installation and removal complete.\nAn installed package requires a reboot.\nWould you like to reboot now?"), 2, -1);
         else
             message (_("Installation and removal complete"), 1, -1);
     }
