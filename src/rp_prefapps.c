@@ -76,7 +76,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* Controls */
 
 static GtkWidget *main_dlg, *cat_tv, *pack_tv, *info_btn, *cancel_btn, *install_btn, *search_te;
-static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn, *msg_cancel;
+static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn, *msg_cancel, *msg_pbv;
 
 /* Data stores for tree views */
 
@@ -208,30 +208,17 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
 
 static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gboolean silent)
 {
-#define ERR_MAX 100
-
     PkResults *results;
     PkError *pkerror;
     GError *error = NULL;
-    gchar *buf, *err;
-    const gchar *pke;
+    gchar *buf;
 
     results = pk_task_generic_finish (task, res, &error);
     if (error != NULL)
     {
         if (silent) return NULL;
-        if (strlen (error->message) < ERR_MAX)
-            err = g_strdup (error->message);
-        else
-        {
-            err = g_strndup (error->message, ERR_MAX);
-            err[ERR_MAX - 3] = '.';
-            err[ERR_MAX - 2] = '.';
-            err[ERR_MAX - 1] = '.';
-        }
-        buf = g_strdup_printf (_("Error %s - %s"), desc, err);
-        g_free (err);
-        message (buf, 1, -1);
+        buf = g_strdup_printf (_("Error %s - %s"), desc, error->message);
+        message (buf, 1, -2);
         g_free (buf);
         return NULL;
     }
@@ -240,19 +227,8 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gb
     if (pkerror != NULL)
     {
         if (silent) return NULL;
-        pke = pk_error_get_details (pkerror);
-        if (strlen (pke) < ERR_MAX)
-            err = g_strdup (pke);
-        else
-        {
-            err = g_strndup (pke, ERR_MAX);
-            err[ERR_MAX - 3] = '.';
-            err[ERR_MAX - 2] = '.';
-            err[ERR_MAX - 1] = '.';
-        }
-        buf = g_strdup_printf (_("Error %s - %s"), desc, err);
-        g_free (err);
-        message (buf, 1, -1);
+        buf = g_strdup_printf (_("Error %s - %s"), desc, pk_error_get_details (pkerror));
+        message (buf, 1, -2);
         g_free (buf);
         return NULL;
     }
@@ -1009,6 +985,13 @@ static gboolean reboot_clicked (GtkButton *button, gpointer data)
 
 static void message (char *msg, int wait, int prog)
 {
+    if (wait == 1 && prog == -2 && msg_dlg)
+    {
+        // error boxes are big, so clear any existing box
+        gtk_widget_destroy (GTK_WIDGET (msg_dlg));
+        msg_dlg = NULL;
+    }
+
     if (!msg_dlg)
     {
         GtkBuilder *builder;
@@ -1023,16 +1006,25 @@ static void message (char *msg, int wait, int prog)
         gtk_window_set_transient_for (GTK_WINDOW (msg_dlg), GTK_WINDOW (main_dlg));
         gtk_window_set_position (GTK_WINDOW (msg_dlg), GTK_WIN_POS_CENTER_ON_PARENT);
         gtk_window_set_destroy_with_parent (GTK_WINDOW (msg_dlg), TRUE);
-        gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 340, 100);
+        // as above - error boxes are big...
+        if (wait == 1 && prog == -2)
+            gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 400, 200);
+        else
+            gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 340, 100);
 
-        wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_eb");
         gdk_color_parse ("#FFFFFF", &col);
+        wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_eb");
+        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
+        wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_sw");
+        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
+        wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_vp");
         gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
 
         msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "msg_lbl");
         msg_pb = (GtkWidget *) gtk_builder_get_object (builder, "msg_pb");
         msg_btn = (GtkWidget *) gtk_builder_get_object (builder, "msg_btn");
         msg_cancel = (GtkWidget *) gtk_builder_get_object (builder, "msg_cancel");
+        msg_pbv = (GtkWidget *) gtk_builder_get_object (builder, "pbvbox");
 
         gtk_label_set_text (GTK_LABEL (msg_msg), msg);
 
@@ -1044,6 +1036,7 @@ static void message (char *msg, int wait, int prog)
     if (wait)
     {
         gtk_widget_set_visible (msg_pb, FALSE);
+        gtk_widget_set_visible (msg_pbv, FALSE);
         if (wait > 1)
         {
             gtk_button_set_label (GTK_BUTTON (msg_btn), "_Yes");
@@ -1064,6 +1057,7 @@ static void message (char *msg, int wait, int prog)
         gtk_widget_set_visible (msg_cancel, FALSE);
         gtk_widget_set_visible (msg_btn, FALSE);
         gtk_widget_set_visible (msg_pb, TRUE);
+        gtk_widget_set_visible (msg_pbv, TRUE);
         if (prog == -1) gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
         else
         {
