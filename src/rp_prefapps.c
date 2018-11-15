@@ -77,6 +77,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 static GtkWidget *main_dlg, *cat_tv, *pack_tv, *info_btn, *cancel_btn, *install_btn, *search_te;
 static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn, *msg_cancel, *msg_pbv;
+static GtkWidget *err_dlg, *err_msg, *err_btn;
 
 /* Data stores for tree views */
 
@@ -110,6 +111,7 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data);
 static gboolean ok_clicked (GtkButton *button, gpointer data);
 static gboolean reboot_clicked (GtkButton *button, gpointer data);
+static void error_box (char *msg);
 static void message (char *msg, int wait, int prog);
 static const char *cat_icon_name (char *category);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
@@ -218,7 +220,7 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gb
     {
         if (silent) return NULL;
         buf = g_strdup_printf (_("Error %s - %s"), desc, error->message);
-        message (buf, 1, -2);
+        error_box (buf);
         g_free (buf);
         return NULL;
     }
@@ -228,7 +230,7 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gb
     {
         if (silent) return NULL;
         buf = g_strdup_printf (_("Error %s - %s"), desc, pk_error_get_details (pkerror));
-        message (buf, 1, -2);
+        error_box (buf);
         g_free (buf);
         return NULL;
     }
@@ -983,15 +985,56 @@ static gboolean reboot_clicked (GtkButton *button, gpointer data)
     return FALSE;
 }
 
-static void message (char *msg, int wait, int prog)
+static void error_box (char *msg)
 {
-    if (wait == 1 && prog == -2 && msg_dlg)
+    if (msg_dlg)
     {
-        // error boxes are big, so clear any existing box
+        // clear any existing message box
         gtk_widget_destroy (GTK_WIDGET (msg_dlg));
         msg_dlg = NULL;
     }
 
+    if (!err_dlg)
+    {
+        GtkBuilder *builder;
+        GtkWidget *wid;
+        GdkColor col;
+
+        builder = gtk_builder_new ();
+        gtk_builder_add_from_file (builder, PACKAGE_DATA_DIR "/rp_prefapps.ui", NULL);
+
+        err_dlg = (GtkWidget *) gtk_builder_get_object (builder, "error");
+        gtk_window_set_modal (GTK_WINDOW (err_dlg), TRUE);
+        gtk_window_set_transient_for (GTK_WINDOW (err_dlg), GTK_WINDOW (main_dlg));
+        gtk_window_set_position (GTK_WINDOW (err_dlg), GTK_WIN_POS_CENTER_ON_PARENT);
+        gtk_window_set_destroy_with_parent (GTK_WINDOW (err_dlg), TRUE);
+        gtk_window_set_default_size (GTK_WINDOW (err_dlg), 400, 200);
+
+        gdk_color_parse ("#FFFFFF", &col);
+        wid = (GtkWidget *) gtk_builder_get_object (builder, "err_eb");
+        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
+        wid = (GtkWidget *) gtk_builder_get_object (builder, "err_sw");
+        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
+        wid = (GtkWidget *) gtk_builder_get_object (builder, "err_vp");
+        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
+
+        err_msg = (GtkWidget *) gtk_builder_get_object (builder, "err_lbl");
+        err_btn = (GtkWidget *) gtk_builder_get_object (builder, "err_btn");
+
+        gtk_label_set_text (GTK_LABEL (err_msg), msg);
+
+        gtk_button_set_label (GTK_BUTTON (err_btn), "_OK");
+        g_signal_connect (err_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
+
+        gtk_widget_show_all (err_dlg);
+        g_object_unref (builder);
+    }
+    else gtk_label_set_text (GTK_LABEL (err_msg), msg);
+}
+
+
+static void message (char *msg, int wait, int prog)
+{
     if (!msg_dlg)
     {
         GtkBuilder *builder;
@@ -1006,25 +1049,16 @@ static void message (char *msg, int wait, int prog)
         gtk_window_set_transient_for (GTK_WINDOW (msg_dlg), GTK_WINDOW (main_dlg));
         gtk_window_set_position (GTK_WINDOW (msg_dlg), GTK_WIN_POS_CENTER_ON_PARENT);
         gtk_window_set_destroy_with_parent (GTK_WINDOW (msg_dlg), TRUE);
-        // as above - error boxes are big...
-        if (wait == 1 && prog == -2)
-            gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 400, 200);
-        else
-            gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 340, 100);
+        gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 340, 100);
 
-        gdk_color_parse ("#FFFFFF", &col);
         wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_eb");
-        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
-        wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_sw");
-        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
-        wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_vp");
+        gdk_color_parse ("#FFFFFF", &col);
         gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
 
         msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "msg_lbl");
         msg_pb = (GtkWidget *) gtk_builder_get_object (builder, "msg_pb");
         msg_btn = (GtkWidget *) gtk_builder_get_object (builder, "msg_btn");
         msg_cancel = (GtkWidget *) gtk_builder_get_object (builder, "msg_cancel");
-        msg_pbv = (GtkWidget *) gtk_builder_get_object (builder, "pbvbox");
 
         gtk_label_set_text (GTK_LABEL (msg_msg), msg);
 
@@ -1036,7 +1070,6 @@ static void message (char *msg, int wait, int prog)
     if (wait)
     {
         gtk_widget_set_visible (msg_pb, FALSE);
-        gtk_widget_set_visible (msg_pbv, FALSE);
         if (wait > 1)
         {
             gtk_button_set_label (GTK_BUTTON (msg_btn), "_Yes");
@@ -1057,7 +1090,6 @@ static void message (char *msg, int wait, int prog)
         gtk_widget_set_visible (msg_cancel, FALSE);
         gtk_widget_set_visible (msg_btn, FALSE);
         gtk_widget_set_visible (msg_pb, TRUE);
-        gtk_widget_set_visible (msg_pbv, TRUE);
         if (prog == -1) gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
         else
         {
