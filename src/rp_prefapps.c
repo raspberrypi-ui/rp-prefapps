@@ -970,8 +970,16 @@ static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer d
 
 static gboolean ok_clicked (GtkButton *button, gpointer data)
 {
-    gtk_widget_destroy (GTK_WIDGET (msg_dlg));
-    msg_dlg = NULL;
+    if (msg_dlg)
+    {
+        gtk_widget_destroy (GTK_WIDGET (msg_dlg));
+        msg_dlg = NULL;
+    }
+    if (err_dlg)
+    {
+        gtk_widget_destroy (GTK_WIDGET (err_dlg));
+        err_dlg = NULL;
+    }
     gtk_main_quit ();
     return FALSE;
 }
