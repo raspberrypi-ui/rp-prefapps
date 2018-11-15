@@ -23,7 +23,7 @@ ui_DATA = $(ui_in_files)
 desktopdir=$(datadir)/applications
 
 desktop_in_files= \
-	rp_prefapps.desktop.in \
+	rp-prefapps.desktop.in \
 	$(NULL)
 desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
 @INTLTOOL_DESKTOP_RULE@

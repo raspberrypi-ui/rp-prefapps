@@ -1,4 +1,4 @@
-bin_PROGRAMS = rp_prefapps
+bin_PROGRAMS = rp-prefapps
 
 rp_prefapps_CFLAGS = \
 	-I$(top_srcdir) \

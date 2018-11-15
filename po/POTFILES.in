@@ -2,5 +2,5 @@
 src/rp_prefapps.c
 [type: gettext/glade] data/rp_prefapps.ui
 # files added by intltool-prepare
-data/rp_prefapps.desktop.in
+data/rp-prefapps.desktop.in
 data/pwdrpp.sh

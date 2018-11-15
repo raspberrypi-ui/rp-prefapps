@@ -1,5 +1,5 @@
 #!/bin/bash
-export TEXTDOMAIN=rp_prefapps
+export TEXTDOMAIN=rp-prefapps
 
 . gettext.sh
 
