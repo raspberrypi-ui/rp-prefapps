@@ -71,8 +71,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CAT_ICON            0
 #define CAT_NAME            1
 
-//#define NO_UPDATE
-
 /* Controls */
 
 static GtkWidget *main_dlg, *cat_tv, *pack_tv, *info_btn, *cancel_btn, *install_btn, *search_te;
@@ -249,10 +247,11 @@ static gboolean update_self (gpointer data)
     message (_("Updating package data - please wait..."), 0 , -1);
 
     task = pk_task_new ();
-#ifdef NO_UPDATE
-	read_data_file (task);
-	return FALSE;
-#endif
+    if (data)
+    {
+        read_data_file (task);
+        return FALSE;
+    }
     pk_client_refresh_cache_async (PK_CLIENT (task), TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) refresh_cache_done, NULL);
     return FALSE;
 }
@@ -1319,7 +1318,10 @@ int main (int argc, char *argv[])
     gtk_widget_show_all (main_dlg);
 
     // update application, load the data file and check with backend
-    g_idle_add (update_self, NULL);
+    if (argc > 1 && !g_strcmp0 (argv[1], "noupdate"))
+        g_idle_add (update_self, (gpointer) 1);
+    else
+        g_idle_add (update_self, NULL);
     gtk_main ();
 
     g_object_unref (builder);
