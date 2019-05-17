@@ -1146,8 +1146,8 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
 
     gtk_tree_model_get (smodel, &siter, PACK_INSTALLED, &val, PACK_INIT_INST, &init, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, -1);
 
-    if (!init && !val) state = g_strdup ("   <b><small>(will be installed)</small></b>");
-    else if (init && val) state = g_strdup ("   <b><small>(will be removed)</small></b>");
+    if (!init && !val) state = g_strdup (_("   <b><small>(will be installed)</small></b>"));
+    else if (init && val) state = g_strdup (_("   <b><small>(will be removed)</small></b>"));
     else state = g_strdup ("");
 
     buf = g_strdup_printf (_("<b>%s</b>%s\n%s"), name, state, desc);
