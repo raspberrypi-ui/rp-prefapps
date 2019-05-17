@@ -1,8 +1,14 @@
-rp-prefapps (0.5) unstable; urgency=medium
+rp-prefapps (0.6) unstable; urgency=medium
 
   * Remove size field
 
  -- Simon Long <simon@raspberrypi.org>  Fri, 17 May 2019 13:56:45 +0100
+
+rp-prefapps (0.5) stretch; urgency=medium
+
+  * Display error messages in their entirety; rename binary to remove underscore
+
+ -- Simon Long <simon@raspberrypi.org>  Wed, 21 Nov 2018 09:47:50 +0000
 
 rp-prefapps (0.4) stretch; urgency=medium
 
