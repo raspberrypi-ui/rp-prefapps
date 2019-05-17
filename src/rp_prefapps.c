@@ -310,7 +310,7 @@ static void read_data_file (PkTask *task)
     GdkPixbuf *icon;
     GKeyFile *kf;
     gchar **groups, **pnames;
-    gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *size, *adds, *add, *addspl;
+    gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl;
     gboolean new, reboot;
     int pcount = 0, gcount = 0;
 
@@ -339,7 +339,6 @@ static void read_data_file (PkTask *task)
             iname = g_key_file_get_value (kf, groups[gcount], "icon", NULL);
             pack = g_key_file_get_value (kf, groups[gcount], "package", NULL);
             rpack = g_key_file_get_value (kf, groups[gcount], "rpackage", NULL);
-            size = g_key_file_get_value (kf, groups[gcount], "size", NULL);
             adds = g_key_file_get_value (kf, groups[gcount], "additional", NULL);
             reboot = g_key_file_get_boolean (kf, groups[gcount], "reboot", NULL);
 
@@ -408,7 +407,7 @@ static void read_data_file (PkTask *task)
             icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
             if (!icon) icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, 0, NULL);
             gtk_list_store_append (packages, &entry);
-            buf = g_strdup_printf (_("<b>%s</b>\n%s\nApprox. size : %s MB"), name, desc, size);
+            buf = g_strdup_printf (_("<b>%s</b>\n%s"), name, desc);
             gtk_list_store_set (packages, &entry,
                 PACK_ICON, icon,
                 PACK_CELL_TEXT, buf,
@@ -421,7 +420,6 @@ static void read_data_file (PkTask *task)
                 PACK_RPACKAGE_ID, "none",
                 PACK_CELL_NAME, name,
                 PACK_CELL_DESC, desc,
-                PACK_SIZE, size,
                 PACK_ADD_NAMES, adds,
                 PACK_ADD_IDS, "none",
                 PACK_REBOOT, reboot,
@@ -435,7 +433,6 @@ static void read_data_file (PkTask *task)
             g_free (iname);
             g_free (pack);
             g_free (rpack);
-            g_free (size);
             g_free (adds);
 
             gcount++;
@@ -1136,7 +1133,7 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     GtkTreeIter iter, citer, siter;
     GtkTreeModel *model, *cmodel, *smodel;
     gboolean val, init;
-    gchar *name, *desc, *buf, *state, *siz;
+    gchar *name, *desc, *buf, *state;
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     gtk_tree_model_get_iter_from_string (model, &iter, path);
@@ -1147,19 +1144,18 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     smodel = gtk_tree_model_sort_get_model (GTK_TREE_MODEL_SORT (cmodel));
     gtk_tree_model_sort_convert_iter_to_child_iter (GTK_TREE_MODEL_SORT (cmodel), &siter, &citer);
 
-    gtk_tree_model_get (smodel, &siter, PACK_INSTALLED, &val, PACK_INIT_INST, &init, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, PACK_SIZE, &siz, -1);
+    gtk_tree_model_get (smodel, &siter, PACK_INSTALLED, &val, PACK_INIT_INST, &init, PACK_CELL_NAME, &name, PACK_CELL_DESC, &desc, -1);
 
-    if (!init && !val) state = g_strdup ("   <b>Will be installed</b>");
-    else if (init && val) state = g_strdup ("   <b>Will be removed</b>");
+    if (!init && !val) state = g_strdup ("   <b><small>(will be installed)</small></b>");
+    else if (init && val) state = g_strdup ("   <b><small>(will be removed)</small></b>");
     else state = g_strdup ("");
 
-    buf = g_strdup_printf (_("<b>%s</b>\n%s\nApprox. size : %s MB%s"), name, desc, siz, state);
+    buf = g_strdup_printf (_("<b>%s</b>%s\n%s"), name, state, desc);
     gtk_list_store_set (GTK_LIST_STORE (smodel), &siter, PACK_INSTALLED, 1 - val, PACK_CELL_TEXT, buf, -1);
     g_free (buf);
     g_free (state);
     g_free (name);
     g_free (desc);
-    g_free (siz);
 }
 
 static void cancel (GtkButton* btn, gpointer ptr)
