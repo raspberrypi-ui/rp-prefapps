@@ -1,3 +1,9 @@
+rp-prefapps (0.9) buster; urgency=medium
+
+  * Add Scratch 3
+
+ -- Simon Long <simon@raspberrypi.org>  Fri, 02 Aug 2019 15:19:08 +0100
+
 rp-prefapps (0.8) buster; urgency=medium
 
   * Add architecture-specific restriction to data file
