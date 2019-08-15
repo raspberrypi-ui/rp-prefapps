@@ -1,3 +1,9 @@
+rp-prefapps (0.10) buster; urgency=medium
+
+  * Rename Thonny package
+
+ -- Simon Long <simon@raspberrypi.org>  Thu, 15 Aug 2019 16:10:04 +0100
+
 rp-prefapps (0.9) buster; urgency=medium
 
   * Add Scratch 3
