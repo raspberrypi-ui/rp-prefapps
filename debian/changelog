@@ -1,3 +1,9 @@
+rp-prefapps (0.11) buster; urgency=medium
+
+  * Change install package name for Minecraft
+
+ -- Simon Long <simon@raspberrypi.org>  Tue, 24 Sep 2019 11:48:13 +0100
+
 rp-prefapps (0.10) buster; urgency=medium
 
   * Rename Thonny package
