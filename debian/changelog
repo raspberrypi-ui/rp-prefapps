@@ -1,3 +1,9 @@
+rp-prefapps (0.13) buster; urgency=medium
+
+  * Ensure clock is synced before starting package operations
+
+ -- Simon Long <simon@raspberrypi.org>  Fri, 08 Nov 2019 13:22:33 +0000
+
 rp-prefapps (0.12) buster; urgency=medium
 
   * Modify desktop file to preserve environment

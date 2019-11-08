@@ -88,7 +88,8 @@ guint n_inst, n_uninst;
 gchar **pinst, **puninst;
 
 char *lang, *lang_loc;
-gboolean needs_reboot;
+gboolean needs_reboot, no_update = FALSE;
+int calls;
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes                                                                 */
@@ -113,6 +114,8 @@ static gboolean ok_clicked (GtkButton *button, gpointer data);
 static gboolean reboot_clicked (GtkButton *button, gpointer data);
 static void error_box (char *msg);
 static void message (char *msg, int wait, int prog);
+static gboolean clock_synced (void);
+static gboolean ntp_check (gpointer data);
 static const char *cat_icon_name (char *category);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
@@ -249,7 +252,7 @@ static gboolean update_self (gpointer data)
     message (_("Updating package data - please wait..."), 0 , -1);
 
     task = pk_task_new ();
-    if (data)
+    if (no_update)
     {
         read_data_file (task);
         return FALSE;
@@ -847,6 +850,31 @@ static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
         message (_("Removal complete"), 1, -1);
 }
 
+static gboolean clock_synced (void)
+{
+    if (system ("timedatectl status | grep -q \"synchronized: yes\"") == 0) return TRUE;
+    return FALSE;
+}
+
+static gboolean ntp_check (gpointer data)
+{
+    gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+    if (clock_synced ())
+    {
+        g_idle_add (update_self, NULL);
+        return FALSE;
+    }
+    if (calls++ > 120)
+    {
+        error_box (_("Error synchronising clock - could not sync with time server"));
+        return FALSE;
+    }
+
+    // trigger a resync
+    system ("systemctl -q stop systemd-timesyncd 2> /dev/null; systemctl -q start systemd-timesyncd 2> /dev/null");
+    return TRUE;
+}
+
 /*----------------------------------------------------------------------------*/
 /* Helper functions for tree views                                            */
 /*----------------------------------------------------------------------------*/
@@ -1332,10 +1360,15 @@ int main (int argc, char *argv[])
     gtk_widget_show_all (main_dlg);
 
     // update application, load the data file and check with backend
-    if (argc > 1 && !g_strcmp0 (argv[1], "noupdate"))
-        g_idle_add (update_self, (gpointer) 1);
+    if (argc > 1 && !g_strcmp0 (argv[1], "noupdate")) no_update = TRUE;
+
+    if (clock_synced ()) g_idle_add (update_self, NULL);
     else
-        g_idle_add (update_self, NULL);
+    {
+        message (_("Synchronising clock - please wait..."), 0, -1);
+        calls = 0;
+        g_timeout_add_seconds (1, ntp_check, NULL);
+    }
     gtk_main ();
 
     g_object_unref (builder);
