@@ -9,6 +9,7 @@ ui_in_files = 	rp_prefapps.ui \
 				minecraft-pi.png \
 				mu.png \
 				node-red-icon.svg \
+				orca.png \
 				scratch.png \
 				scratch2.png \
 				scratch3.png \
