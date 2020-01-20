@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rp_prefapps 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-08 13:21+0000\n"
+"POT-Creation-Date: 2020-01-20 14:35+0000\n"
 "PO-Revision-Date: 2018-10-29 07:24+0000\n"
 "Last-Translator: Simon Long <simon@raspberrypi.org>\n"
 "Language-Team: English (British)\n"
@@ -75,7 +75,7 @@ msgstr "finding packages"
 #. check that category matches
 #. always show All Programs category
 #: ../src/rp_prefapps.c:335 ../src/rp_prefapps.c:638 ../src/rp_prefapps.c:639
-#: ../src/rp_prefapps.c:941 ../src/rp_prefapps.c:949 ../src/rp_prefapps.c:984
+#: ../src/rp_prefapps.c:944 ../src/rp_prefapps.c:952 ../src/rp_prefapps.c:987
 msgid "All Programs"
 msgstr "All Programs"
 
@@ -196,15 +196,19 @@ msgstr "Science & Maths"
 msgid "Preferences"
 msgstr "Preferences"
 
-#: ../src/rp_prefapps.c:1195
+#: ../src/rp_prefapps.c:923
+msgid "Universal Access"
+msgstr "Universal Access"
+
+#: ../src/rp_prefapps.c:1198
 msgid "   <b><small>(will be installed)</small></b>"
 msgstr "   <b><small>(will be installed)</small></b>"
 
-#: ../src/rp_prefapps.c:1196
+#: ../src/rp_prefapps.c:1199
 msgid "   <b><small>(will be removed)</small></b>"
 msgstr "   <b><small>(will be removed)</small></b>"
 
-#: ../src/rp_prefapps.c:1199
+#: ../src/rp_prefapps.c:1202
 #, c-format
 msgid ""
 "<b>%s</b>%s\n"
@@ -213,22 +217,24 @@ msgstr ""
 "<b>%s</b>%s\n"
 "%s"
 
-#: ../src/rp_prefapps.c:1233
+#: ../src/rp_prefapps.c:1236
 msgid "No additional information available for this package."
 msgstr "No additional information available for this package."
 
-#: ../src/rp_prefapps.c:1336
+#: ../src/rp_prefapps.c:1339
 msgid "Application"
 msgstr "Application"
 
-#: ../src/rp_prefapps.c:1337
+#: ../src/rp_prefapps.c:1340
 msgid "Install"
 msgstr "Install"
 
-#: ../src/rp_prefapps.c:1368
+#: ../src/rp_prefapps.c:1371
 msgid "Synchronising clock - please wait..."
 msgstr "Synchronising clock - please wait..."
 
+#. End of file
+#. ----------------------------------------------------------------------------
 #: ../data/rp_prefapps.ui.h:1
 msgid "_OK"
 msgstr "_OK"

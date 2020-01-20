@@ -920,6 +920,9 @@ static const char *cat_icon_name (char *category)
     if (!g_strcmp0 (category, _("Preferences")))
         return "preferences-desktop";
 
+    if (!g_strcmp0 (category, _("Universal Access")))
+        return "preferences-desktop-accessibility";
+
     return NULL;
 }
 
