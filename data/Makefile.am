@@ -4,6 +4,7 @@ ui_in_files = 	rp_prefapps.ui \
 				prefapps.conf \
 				bluej.png \
 				claws-mail.png \
+				ctc.png \
 				greenfoot.png \
 				libreoffice-main.png \
 				minecraft-pi.png \
