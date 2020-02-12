@@ -117,6 +117,8 @@ static void message (char *msg, int wait, int prog);
 static gboolean clock_synced (void);
 static void resync (void);
 static gboolean ntp_check (gpointer data);
+static char *get_shell_string (char *cmd);
+static gboolean net_available (void);
 static const char *cat_icon_name (char *category);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
@@ -896,6 +898,39 @@ static gboolean ntp_check (gpointer data)
     return TRUE;
 }
 
+static char *get_shell_string (char *cmd)
+{
+    char *line = NULL, *res = NULL;
+    int len = 0;
+    FILE *fp = popen (cmd, "r");
+
+    if (fp == NULL) return g_strdup ("");
+    if (getline (&line, &len, fp) > 0)
+    {
+        g_strdelimit (line, "\n\r", 0);
+        res = line;
+        while (*res++) if (g_ascii_isspace (*res)) *res = 0;
+        res = g_strdup (line);
+    }
+    pclose (fp);
+    g_free (line);
+    return res ? res : g_strdup ("");
+}
+
+static gboolean net_available (void)
+{
+    char *ip;
+    gboolean val = FALSE;
+
+    ip = get_shell_string ("hostname -I | tr ' ' \\\\n | grep \\\\. | tr \\\\n ','");
+    if (ip)
+    {
+        if (strlen (ip)) val = TRUE;
+        g_free (ip);
+    }
+    return val;
+}
+
 /*----------------------------------------------------------------------------*/
 /* Helper functions for tree views                                            */
 /*----------------------------------------------------------------------------*/
@@ -1386,13 +1421,18 @@ int main (int argc, char *argv[])
     // update application, load the data file and check with backend
     if (argc > 1 && !g_strcmp0 (argv[1], "noupdate")) no_update = TRUE;
 
-    if (clock_synced ()) g_idle_add (update_self, NULL);
-    else
+    if (net_available ())
     {
-        message (_("Synchronising clock - please wait..."), 0, -1);
-        calls = 0;
-        g_timeout_add_seconds (1, ntp_check, NULL);
+        if (clock_synced ()) g_idle_add (update_self, NULL);
+        else
+        {
+            message (_("Synchronising clock - please wait..."), 0, -1);
+            calls = 0;
+            g_timeout_add_seconds (1, ntp_check, NULL);
+        }
     }
+    else error_box (_("No network connection - applications cannot be installed"));
+
     gtk_main ();
 
     g_object_unref (builder);
