@@ -901,7 +901,7 @@ static gboolean ntp_check (gpointer data)
 static char *get_shell_string (char *cmd)
 {
     char *line = NULL, *res = NULL;
-    int len = 0;
+    size_t len = 0;
     FILE *fp = popen (cmd, "r");
 
     if (fp == NULL) return g_strdup ("");
