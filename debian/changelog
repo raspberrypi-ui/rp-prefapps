@@ -1,3 +1,9 @@
+rp-prefapps (0.19) buster; urgency=medium
+
+  * Magnifier added
+
+ -- Simon Long <simon@raspberrypi.com>  Thu, 09 Apr 2020 11:07:35 +0100
+
 rp-prefapps (0.18) buster; urgency=medium
 
   * Use size_t in all getline calls
