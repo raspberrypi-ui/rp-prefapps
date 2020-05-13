@@ -1,3 +1,9 @@
+rp-prefapps (0.20) buster; urgency=medium
+
+  * Added Italian translation
+
+ -- Simon Long <simon@raspberrypi.com>  Wed, 13 May 2020 13:22:52 +0100
+
 rp-prefapps (0.19) buster; urgency=medium
 
   * Magnifier added
