@@ -502,6 +502,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     gboolean valid, inst;
     gchar *pack, *rpack, *package_id, *arch;
     gchar *addpks, *addpk, *addids, *addlist;
+    gchar *curr_id;
     int i;
 
     results = error_handler (task, res, _("finding packages"), FALSE);
@@ -576,6 +577,10 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
                             gtk_list_store_set (packages, &iter, PACK_ADD_IDS, package_id, -1);
                         else
                         {
+                            // DANGER, WILL ROBINSON - if additional packages ever come in multiple architectures, this will need to be fixed,
+                            // by going through each string in the existing addids array and seeing if it matches the new string except for
+                            // the archicture, and replacing it with the new string if so; just appending it as now otherwise.
+                            // This will be incredibly tedious, so I'm not doing it until I need to...
                             addlist = g_strdup_printf ("%s,%s", addids, package_id);
                             gtk_list_store_set (packages, &iter, PACK_ADD_IDS, addlist, -1);
                             g_free (addlist);
@@ -607,10 +612,13 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
             valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
             while (valid)
             {
-                gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &inst, PACK_PACKAGE_NAME, &pack, PACK_ARCH, &arch, -1);
+                gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_INSTALLED, &inst, PACK_PACKAGE_NAME, &pack, PACK_ARCH, &arch, PACK_PACKAGE_ID, &curr_id, -1);
+
                 if (!inst && match_pid (pack, package_id) && match_arch (arch))
                 {
-                    gtk_list_store_set (packages, &iter, PACK_PACKAGE_ID, package_id, -1);
+                    // If this package already has a PID stored, then only overwrite it if the new version is arm64 (because the current one will then be armhf)
+                    if (!g_strcmp0 (curr_id, "none") || strstr (package_id, "arm64"))
+                        gtk_list_store_set (packages, &iter, PACK_PACKAGE_ID, package_id, -1);
                     break;
                 }
                 valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
