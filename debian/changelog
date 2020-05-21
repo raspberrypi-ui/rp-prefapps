@@ -1,3 +1,9 @@
+rp-prefapps (0.21) buster; urgency=medium
+
+  * Changes to handle 64 and 32 bit packages both being offered
+
+ -- Simon Long <simon@raspberrypi.com>  Thu, 21 May 2020 18:27:26 +0100
+
 rp-prefapps (0.20) buster; urgency=medium
 
   * Added Italian translation
