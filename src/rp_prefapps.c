@@ -71,6 +71,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define CAT_ICON            0
 #define CAT_NAME            1
+#define CAT_DISP_NAME       2
 
 /* Controls */
 
@@ -335,7 +336,7 @@ static void read_data_file (PkTask *task)
         g_free (buf);
         gtk_list_store_append (GTK_LIST_STORE (categories), &cat_entry);
         icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "rpi", 32, 0, NULL);
-        gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, _("All Programs"), -1);
+        gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, "All Programs", CAT_DISP_NAME, _("All Programs"), -1);
         if (icon) g_object_unref (icon);
         groups = g_key_file_get_groups (kf, NULL);
 
@@ -408,7 +409,7 @@ static void read_data_file (PkTask *task)
             {
                 icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), cat_icon_name (cat), 32, 0, NULL);
                 gtk_list_store_append (categories, &cat_entry);
-                gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, cat, -1);
+                gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, cat, CAT_DISP_NAME, _(cat), -1);
                 if (icon) g_object_unref (icon);
             }
 
@@ -643,8 +644,8 @@ static int category_sort (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, g
     gchar *name1, *name2;
     int ret;
 
-    gtk_tree_model_get (model, a, CAT_NAME, &name1, -1);
-    gtk_tree_model_get (model, b, CAT_NAME, &name2, -1);
+    gtk_tree_model_get (model, a, CAT_DISP_NAME, &name1, -1);
+    gtk_tree_model_get (model, b, CAT_DISP_NAME, &name2, -1);
 
     if (!g_strcmp0 (name1, _("All Programs"))) ret = -1;
     else if (!g_strcmp0 (name2, _("All Programs"))) ret = 1;
@@ -1005,7 +1006,7 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     {
         gtk_tree_model_get (cmodel, &citer, CAT_NAME, &cat, -1);
     }
-    else cat = g_strdup (_("All Programs"));
+    else cat = g_strdup ("All Programs");
 
     // first make sure the package has a package ID - ignore if not
     gtk_tree_model_get (model, iter, PACK_PACKAGE_ID, &id, PACK_RPACKAGE_ID, &rid, PACK_CATEGORY, &pcat, PACK_CELL_DESC, &desc, -1);
@@ -1013,7 +1014,7 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
     else
     {
         // check that category matches
-        if (!g_strcmp0 (cat, _("All Programs"))) res = TRUE;
+        if (!g_strcmp0 (cat, "All Programs")) res = TRUE;
         else
         {
             if (!g_strcmp0 (cat, pcat)) res = TRUE;
@@ -1048,7 +1049,7 @@ static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer d
     gtk_tree_model_get (model, iter, CAT_NAME, &tcat, -1);
 
     // always show All Programs category
-    if (!g_strcmp0 (tcat, _("All Programs"))) return TRUE;
+    if (!g_strcmp0 (tcat, "All Programs")) return TRUE;
 
 	// loop through all packages in database - show category only if it matches a program with a valid ID
     valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &piter);
@@ -1385,7 +1386,7 @@ int main (int argc, char *argv[])
     search_te = (GtkWidget *) gtk_builder_get_object (builder, "search");
 
     // create list stores
-    categories = gtk_list_store_new (2, GDK_TYPE_PIXBUF, G_TYPE_STRING);
+    categories = gtk_list_store_new (3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING);
     packages = gtk_list_store_new (18, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING);
 
     // set up tree views
@@ -1394,7 +1395,7 @@ int main (int argc, char *argv[])
     crb = gtk_cell_renderer_toggle_new ();
 
     gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 0, "Icon", crp, "pixbuf", CAT_ICON, NULL);
-    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 1, "Category", crt, "text", CAT_NAME, NULL);
+    gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 1, "Category", crt, "text", CAT_DISP_NAME, NULL);
 
     gtk_widget_set_size_request (cat_tv, 160, -1);
     gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (cat_tv), FALSE);
