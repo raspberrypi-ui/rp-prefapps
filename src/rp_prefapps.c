@@ -1073,46 +1073,46 @@ static gboolean net_available (void)
 
 static const char *cat_icon_name (char *category)
 {
-    if (!g_strcmp0 (category, "Programming"))
+    if (!g_strcmp0 (category, N_("Programming")))
         return "applications-development";
 
-    if (!g_strcmp0 (category, "Office"))
+    if (!g_strcmp0 (category, N_("Office")))
         return "applications-office";
 
-    if (!g_strcmp0 (category, "Internet"))
+    if (!g_strcmp0 (category, N_("Internet")))
         return "applications-internet";
 
-    if (!g_strcmp0 (category, "Games"))
+    if (!g_strcmp0 (category, N_("Games")))
         return "applications-games";
 
-    if (!g_strcmp0 (category, "Other"))
+    if (!g_strcmp0 (category, N_("Other")))
         return "applications-other";
 
-    if (!g_strcmp0 (category, "Accessories"))
+    if (!g_strcmp0 (category, N_("Accessories")))
         return "applications-accessories";
 
-    if (!g_strcmp0 (category, "Sound & Video"))
+    if (!g_strcmp0 (category, N_("Sound & Video")))
         return "applications-multimedia";
 
-    if (!g_strcmp0 (category, "System Tools"))
+    if (!g_strcmp0 (category, N_("System Tools")))
         return "applications-system";
 
-    if (!g_strcmp0 (category, "Engineering"))
+    if (!g_strcmp0 (category, N_("Engineering")))
         return "applications-engineering";
 
-    if (!g_strcmp0 (category, "Education"))
+    if (!g_strcmp0 (category, N_("Education")))
         return "applications-science";
 
-    if (!g_strcmp0 (category, "Graphics"))
+    if (!g_strcmp0 (category, N_("Graphics")))
         return "applications-graphics";
 
-    if (!g_strcmp0 (category, "Science & Maths"))
+    if (!g_strcmp0 (category, N_("Science & Maths")))
         return "applications-science";
 
-    if (!g_strcmp0 (category, "Preferences"))
+    if (!g_strcmp0 (category, N_("Preferences")))
         return "preferences-desktop";
 
-    if (!g_strcmp0 (category, "Universal Access"))
+    if (!g_strcmp0 (category, N_("Universal Access")))
         return "preferences-desktop-accessibility";
 
     return NULL;

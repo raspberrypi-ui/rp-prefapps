@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rp_prefapps 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-19 13:03+0100\n"
+"POT-Creation-Date: 2020-06-19 13:22+0100\n"
 "PO-Revision-Date: 2018-10-29 07:24+0000\n"
 "Last-Translator: Simon Long <simon@raspberrypi.org>\n"
 "Language-Team: English (British)\n"
@@ -122,6 +122,62 @@ msgstr "Removal complete"
 msgid "Error synchronising clock - could not sync with time server"
 msgstr "Error synchronising clock - could not sync with time server"
 
+#: ../src/rp_prefapps.c:1076
+msgid "Programming"
+msgstr "Programming"
+
+#: ../src/rp_prefapps.c:1079
+msgid "Office"
+msgstr "Office"
+
+#: ../src/rp_prefapps.c:1082
+msgid "Internet"
+msgstr "Internet"
+
+#: ../src/rp_prefapps.c:1085
+msgid "Games"
+msgstr "Games"
+
+#: ../src/rp_prefapps.c:1088
+msgid "Other"
+msgstr "Other"
+
+#: ../src/rp_prefapps.c:1091
+msgid "Accessories"
+msgstr "Accessories"
+
+#: ../src/rp_prefapps.c:1094
+msgid "Sound & Video"
+msgstr "Sound & Video"
+
+#: ../src/rp_prefapps.c:1097
+msgid "System Tools"
+msgstr "System Tools"
+
+#: ../src/rp_prefapps.c:1100
+msgid "Engineering"
+msgstr "Engineering"
+
+#: ../src/rp_prefapps.c:1103
+msgid "Education"
+msgstr "Education"
+
+#: ../src/rp_prefapps.c:1106
+msgid "Graphics"
+msgstr "Graphics"
+
+#: ../src/rp_prefapps.c:1109
+msgid "Science & Maths"
+msgstr "Science & Maths"
+
+#: ../src/rp_prefapps.c:1112
+msgid "Preferences"
+msgstr "Preferences"
+
+#: ../src/rp_prefapps.c:1115
+msgid "Universal Access"
+msgstr "Universal Access"
+
 #: ../src/rp_prefapps.c:1402
 msgid "   <b><small>(will be installed)</small></b>"
 msgstr "   <b><small>(will be installed)</small></b>"
@@ -209,48 +265,6 @@ msgstr "Password Required"
 #~ "Installation and removal complete.\n"
 #~ "An installed package requires a reboot.\n"
 #~ "Would you like to reboot now?"
-
-#~ msgid "Programming"
-#~ msgstr "Programming"
-
-#~ msgid "Office"
-#~ msgstr "Office"
-
-#~ msgid "Internet"
-#~ msgstr "Internet"
-
-#~ msgid "Games"
-#~ msgstr "Games"
-
-#~ msgid "Other"
-#~ msgstr "Other"
-
-#~ msgid "Accessories"
-#~ msgstr "Accessories"
-
-#~ msgid "Sound & Video"
-#~ msgstr "Sound & Video"
-
-#~ msgid "System Tools"
-#~ msgstr "System Tools"
-
-#~ msgid "Engineering"
-#~ msgstr "Engineering"
-
-#~ msgid "Education"
-#~ msgstr "Education"
-
-#~ msgid "Graphics"
-#~ msgstr "Graphics"
-
-#~ msgid "Science & Maths"
-#~ msgstr "Science & Maths"
-
-#~ msgid "Preferences"
-#~ msgstr "Preferences"
-
-#~ msgid "Universal Access"
-#~ msgstr "Universal Access"
 
 #~ msgid "_Cancel"
 #~ msgstr "_Cancel"
