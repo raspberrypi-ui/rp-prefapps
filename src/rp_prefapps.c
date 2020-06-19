@@ -98,7 +98,7 @@ int calls;
 
 static char *name_from_id (const gchar *id);
 static void progress (PkProgress *progress, PkProgressType *type, gpointer data);
-static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gboolean silent);
+static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gboolean silent, gboolean terminal);
 static gboolean update_self (gpointer data);
 static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data);
@@ -114,7 +114,7 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data);
 static gboolean ok_clicked (GtkButton *button, gpointer data);
 static gboolean reboot_clicked (GtkButton *button, gpointer data);
-static void error_box (char *msg);
+static void error_box (char *msg, gboolean terminal);
 static void message (char *msg, int wait, int prog);
 static gboolean clock_synced (void);
 static void resync (void);
@@ -216,7 +216,7 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
     }
 }
 
-static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gboolean silent)
+static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gboolean silent, gboolean terminal)
 {
     PkResults *results;
     PkError *pkerror;
@@ -228,7 +228,7 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gb
     {
         if (silent) return NULL;
         buf = g_strdup_printf (_("Error %s - %s"), desc, error->message);
-        error_box (buf);
+        error_box (buf, terminal);
         g_free (buf);
         return NULL;
     }
@@ -238,7 +238,7 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gb
     {
         if (silent) return NULL;
         buf = g_strdup_printf (_("Error %s - %s"), desc, pk_error_get_details (pkerror));
-        error_box (buf);
+        error_box (buf, terminal);
         g_free (buf);
         return NULL;
     }
@@ -270,7 +270,7 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     gchar *pkg[2] = { "rp-prefapps", NULL };
 
-    if (!error_handler (task, res, _("updating package data"), FALSE)) return;
+    if (!error_handler (task, res, _("updating package data"), FALSE, TRUE)) return;
 
     message (_("Finding packages - please wait..."), 0 , -1);
 
@@ -283,7 +283,7 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
     PkPackageSack *sack;
     gchar **ids;
 
-    results = error_handler (task, res, _("finding packages"), TRUE);
+    results = error_handler (task, res, _("finding packages"), TRUE, FALSE);
 
     // Ignore errors here - if the update failed, carry on with existing data...
     if (results)
@@ -457,7 +457,7 @@ static void read_data_file (PkTask *task)
         // handle no data file here...
         g_free (buf);
         g_free (pnames);
-        message (_("Unable to open package data file"), 1 , -1);
+        error_box (_("Unable to open package data file"), TRUE);
         return;
     }
 
@@ -584,7 +584,7 @@ static void reload_data_file (PkTask *task)
         // handle no data file here...
         g_free (buf);
         g_free (pnames);
-        message (_("Unable to open package data file"), 1 , -1);
+        error_box (_("Unable to open package data file"), TRUE);
         return;
     }
 
@@ -635,7 +635,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     gchar *curr_id;
     int i;
 
-    results = error_handler (task, res, _("finding packages"), FALSE);
+    results = error_handler (task, res, _("finding packages"), FALSE, TRUE);
     if (!results) return;
 
     array = pk_results_get_package_array (results);
@@ -798,7 +798,7 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     const gchar *package_id;
     int i;
 
-    results = error_handler (task, res, _("reading package details"), FALSE);
+    results = error_handler (task, res, _("reading package details"), FALSE, TRUE);
     if (!results) return;
 
     array = pk_results_get_details_array (results);
@@ -967,7 +967,7 @@ static void install (GtkButton* btn, gpointer ptr)
 
 static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
-    if (!error_handler (task, res, _("installing packages"), FALSE)) return;
+    if (!error_handler (task, res, _("installing packages"), FALSE, FALSE)) return;
 
     if (n_uninst)
     {
@@ -981,7 +981,7 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
-    if (!error_handler (task, res, _("removing packages"), FALSE)) return;
+    if (!error_handler (task, res, _("removing packages"), FALSE, FALSE)) return;
 
     if (n_inst)
         message (_("Installation and removal complete"), 1, -1);
@@ -1027,7 +1027,7 @@ static gboolean ntp_check (gpointer data)
 
     if (calls++ > 120)
     {
-        error_box (_("Error synchronising clock - could not sync with time server"));
+        error_box (_("Error synchronising clock - could not sync with time server"), TRUE);
         return FALSE;
     }
 
@@ -1238,7 +1238,7 @@ static gboolean reboot_clicked (GtkButton *button, gpointer data)
     return FALSE;
 }
 
-static void error_box (char *msg)
+static void error_box (char *msg, gboolean terminal)
 {
     if (msg_dlg)
     {
@@ -1277,7 +1277,10 @@ static void error_box (char *msg)
         gtk_label_set_text (GTK_LABEL (err_msg), msg);
 
         gtk_button_set_label (GTK_BUTTON (err_btn), "_OK");
-        g_signal_connect (err_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
+        if (terminal)
+            g_signal_connect (err_btn, "clicked", G_CALLBACK (cancel), NULL);
+        else
+            g_signal_connect (err_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
 
         gtk_widget_show_all (err_dlg);
         g_object_unref (builder);
@@ -1582,7 +1585,7 @@ int main (int argc, char *argv[])
             g_timeout_add_seconds (1, ntp_check, NULL);
         }
     }
-    else error_box (_("No network connection - applications cannot be installed"));
+    else error_box (_("No network connection - applications cannot be installed"), TRUE);
 
     gtk_main ();
 
