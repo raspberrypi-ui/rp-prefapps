@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rp_prefapps 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-12 08:09+0000\n"
+"POT-Creation-Date: 2020-06-19 13:03+0100\n"
 "PO-Revision-Date: 2018-10-29 07:24+0000\n"
 "Last-Translator: Simon Long <simon@raspberrypi.org>\n"
 "Language-Team: English (British)\n"
@@ -17,69 +17,67 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/rp_prefapps.c:164 ../src/rp_prefapps.c:254
+#: ../src/rp_prefapps.c:167 ../src/rp_prefapps.c:257 ../src/rp_prefapps.c:1223
 msgid "Updating package data - please wait..."
 msgstr "Updating package data - please wait..."
 
-#: ../src/rp_prefapps.c:170 ../src/rp_prefapps.c:272 ../src/rp_prefapps.c:461
+#: ../src/rp_prefapps.c:173 ../src/rp_prefapps.c:275 ../src/rp_prefapps.c:464
+#: ../src/rp_prefapps.c:591
 msgid "Finding packages - please wait..."
 msgstr "Finding packages - please wait..."
 
-#: ../src/rp_prefapps.c:176 ../src/rp_prefapps.c:292
+#: ../src/rp_prefapps.c:179 ../src/rp_prefapps.c:295
 msgid "Updating application - please wait..."
 msgstr "Updating application - please wait..."
 
-#: ../src/rp_prefapps.c:182 ../src/rp_prefapps.c:623
+#: ../src/rp_prefapps.c:185 ../src/rp_prefapps.c:762
 msgid "Reading package details - please wait..."
 msgstr "Reading package details - please wait..."
 
-#: ../src/rp_prefapps.c:190
+#: ../src/rp_prefapps.c:193
 #, c-format
 msgid "%s %s - please wait..."
 msgstr "%s %s - please wait..."
 
-#: ../src/rp_prefapps.c:190
+#: ../src/rp_prefapps.c:193
 msgid "Installing"
 msgstr "Installing"
 
-#: ../src/rp_prefapps.c:190
+#: ../src/rp_prefapps.c:193
 msgid "Downloading"
 msgstr "Downloading"
 
-#: ../src/rp_prefapps.c:191
+#: ../src/rp_prefapps.c:194
 msgid "packages"
 msgstr "packages"
 
-#: ../src/rp_prefapps.c:203
+#: ../src/rp_prefapps.c:206
 #, c-format
 msgid "Removing %s - please wait..."
 msgstr "Removing %s - please wait..."
 
-#: ../src/rp_prefapps.c:207 ../src/rp_prefapps.c:816 ../src/rp_prefapps.c:830
+#: ../src/rp_prefapps.c:210 ../src/rp_prefapps.c:955 ../src/rp_prefapps.c:974
 msgid "Removing packages - please wait..."
 msgstr "Removing packages - please wait..."
 
-#: ../src/rp_prefapps.c:227 ../src/rp_prefapps.c:237
+#: ../src/rp_prefapps.c:230 ../src/rp_prefapps.c:240
 #, c-format
 msgid "Error %s - %s"
 msgstr "Error %s - %s"
 
-#: ../src/rp_prefapps.c:270
+#: ../src/rp_prefapps.c:273
 msgid "updating package data"
 msgstr "updating package data"
 
-#: ../src/rp_prefapps.c:283 ../src/rp_prefapps.c:506
+#: ../src/rp_prefapps.c:286 ../src/rp_prefapps.c:638
 msgid "finding packages"
 msgstr "finding packages"
 
-#. check that category matches
-#. always show All Programs category
-#: ../src/rp_prefapps.c:337 ../src/rp_prefapps.c:640 ../src/rp_prefapps.c:641
-#: ../src/rp_prefapps.c:999 ../src/rp_prefapps.c:1007 ../src/rp_prefapps.c:1042
+#: ../src/rp_prefapps.c:340 ../src/rp_prefapps.c:779 ../src/rp_prefapps.c:780
 msgid "All Programs"
 msgstr "All Programs"
 
-#: ../src/rp_prefapps.c:418
+#: ../src/rp_prefapps.c:421 ../src/rp_prefapps.c:548
 #, c-format
 msgid ""
 "<b>%s</b>\n"
@@ -88,127 +86,51 @@ msgstr ""
 "<b>%s</b>\n"
 "%s"
 
-#: ../src/rp_prefapps.c:457
+#: ../src/rp_prefapps.c:460 ../src/rp_prefapps.c:587
 msgid "Unable to open package data file"
 msgstr "Unable to open package data file"
 
-#: ../src/rp_prefapps.c:662
+#: ../src/rp_prefapps.c:801
 msgid "reading package details"
 msgstr "reading package details"
 
-#: ../src/rp_prefapps.c:809
+#: ../src/rp_prefapps.c:948
 msgid "Installing packages - please wait..."
 msgstr "Installing packages - please wait..."
 
-#: ../src/rp_prefapps.c:826
+#: ../src/rp_prefapps.c:970
 msgid "installing packages"
 msgstr "installing packages"
 
-#: ../src/rp_prefapps.c:835
-msgid ""
-"Installation complete.\n"
-"An installed package requires a reboot.\n"
-"Would you like to reboot now?"
-msgstr ""
-"Installation complete.\n"
-"An installed package requires a reboot.\n"
-"Would you like to reboot now?"
-
-#: ../src/rp_prefapps.c:837
+#: ../src/rp_prefapps.c:979
 msgid "Installation complete"
 msgstr "Installation complete"
 
-#: ../src/rp_prefapps.c:842
+#: ../src/rp_prefapps.c:984
 msgid "removing packages"
 msgstr "removing packages"
 
-#: ../src/rp_prefapps.c:847
-msgid ""
-"Installation and removal complete.\n"
-"An installed package requires a reboot.\n"
-"Would you like to reboot now?"
-msgstr ""
-"Installation and removal complete.\n"
-"An installed package requires a reboot.\n"
-"Would you like to reboot now?"
-
-#: ../src/rp_prefapps.c:849
+#: ../src/rp_prefapps.c:987
 msgid "Installation and removal complete"
 msgstr "Installation and removal complete"
 
-#: ../src/rp_prefapps.c:852
+#: ../src/rp_prefapps.c:989
 msgid "Removal complete"
 msgstr "Removal complete"
 
-#: ../src/rp_prefapps.c:893
+#: ../src/rp_prefapps.c:1030
 msgid "Error synchronising clock - could not sync with time server"
 msgstr "Error synchronising clock - could not sync with time server"
 
-#: ../src/rp_prefapps.c:939
-msgid "Programming"
-msgstr "Programming"
-
-#: ../src/rp_prefapps.c:942
-msgid "Office"
-msgstr "Office"
-
-#: ../src/rp_prefapps.c:945
-msgid "Internet"
-msgstr "Internet"
-
-#: ../src/rp_prefapps.c:948
-msgid "Games"
-msgstr "Games"
-
-#: ../src/rp_prefapps.c:951
-msgid "Other"
-msgstr "Other"
-
-#: ../src/rp_prefapps.c:954
-msgid "Accessories"
-msgstr "Accessories"
-
-#: ../src/rp_prefapps.c:957
-msgid "Sound & Video"
-msgstr "Sound & Video"
-
-#: ../src/rp_prefapps.c:960
-msgid "System Tools"
-msgstr "System Tools"
-
-#: ../src/rp_prefapps.c:963
-msgid "Engineering"
-msgstr "Engineering"
-
-#: ../src/rp_prefapps.c:966
-msgid "Education"
-msgstr "Education"
-
-#: ../src/rp_prefapps.c:969
-msgid "Graphics"
-msgstr "Graphics"
-
-#: ../src/rp_prefapps.c:972
-msgid "Science & Maths"
-msgstr "Science & Maths"
-
-#: ../src/rp_prefapps.c:975
-msgid "Preferences"
-msgstr "Preferences"
-
-#: ../src/rp_prefapps.c:978
-msgid "Universal Access"
-msgstr "Universal Access"
-
-#: ../src/rp_prefapps.c:1253
+#: ../src/rp_prefapps.c:1402
 msgid "   <b><small>(will be installed)</small></b>"
 msgstr "   <b><small>(will be installed)</small></b>"
 
-#: ../src/rp_prefapps.c:1254
+#: ../src/rp_prefapps.c:1403
 msgid "   <b><small>(will be removed)</small></b>"
 msgstr "   <b><small>(will be removed)</small></b>"
 
-#: ../src/rp_prefapps.c:1257
+#: ../src/rp_prefapps.c:1406
 #, c-format
 msgid ""
 "<b>%s</b>%s\n"
@@ -217,23 +139,31 @@ msgstr ""
 "<b>%s</b>%s\n"
 "%s"
 
-#: ../src/rp_prefapps.c:1291
+#: ../src/rp_prefapps.c:1417
+msgid ""
+"An installed package requires a reboot.\n"
+"Would you like to reboot now?"
+msgstr ""
+"An installed package requires a reboot.\n"
+"Would you like to reboot now?"
+
+#: ../src/rp_prefapps.c:1443
 msgid "No additional information available for this package."
 msgstr "No additional information available for this package."
 
-#: ../src/rp_prefapps.c:1394
+#: ../src/rp_prefapps.c:1546
 msgid "Application"
 msgstr "Application"
 
-#: ../src/rp_prefapps.c:1395
+#: ../src/rp_prefapps.c:1547
 msgid "Install"
 msgstr "Install"
 
-#: ../src/rp_prefapps.c:1428
+#: ../src/rp_prefapps.c:1580
 msgid "Synchronising clock - please wait..."
 msgstr "Synchronising clock - please wait..."
 
-#: ../src/rp_prefapps.c:1433
+#: ../src/rp_prefapps.c:1585
 msgid "No network connection - applications cannot be installed"
 msgstr "No network connection - applications cannot be installed"
 
@@ -256,13 +186,71 @@ msgid "More _Info"
 msgstr "More _Info"
 
 #: ../data/rp_prefapps.ui.h:5
-msgid "_Cancel"
-msgstr "_Cancel"
+msgid "_Close"
+msgstr "_Close"
+
+#: ../data/rp_prefapps.ui.h:6
+msgid "_Apply"
+msgstr "_Apply"
 
 #: ../data/rp-prefapps.desktop.in.h:2
 msgid "Install additional programs recommended for use on the Pi"
-msgstr "Install additional programs recommended for use on the Pi"
+msgstr "Install additional programs recommended for use on the Raspberry Pi"
 
 #: ../data/pwdrpp.sh:6
 msgid "Password Required"
 msgstr "Password Required"
+
+#~ msgid ""
+#~ "Installation and removal complete.\n"
+#~ "An installed package requires a reboot.\n"
+#~ "Would you like to reboot now?"
+#~ msgstr ""
+#~ "Installation and removal complete.\n"
+#~ "An installed package requires a reboot.\n"
+#~ "Would you like to reboot now?"
+
+#~ msgid "Programming"
+#~ msgstr "Programming"
+
+#~ msgid "Office"
+#~ msgstr "Office"
+
+#~ msgid "Internet"
+#~ msgstr "Internet"
+
+#~ msgid "Games"
+#~ msgstr "Games"
+
+#~ msgid "Other"
+#~ msgstr "Other"
+
+#~ msgid "Accessories"
+#~ msgstr "Accessories"
+
+#~ msgid "Sound & Video"
+#~ msgstr "Sound & Video"
+
+#~ msgid "System Tools"
+#~ msgstr "System Tools"
+
+#~ msgid "Engineering"
+#~ msgstr "Engineering"
+
+#~ msgid "Education"
+#~ msgstr "Education"
+
+#~ msgid "Graphics"
+#~ msgstr "Graphics"
+
+#~ msgid "Science & Maths"
+#~ msgstr "Science & Maths"
+
+#~ msgid "Preferences"
+#~ msgstr "Preferences"
+
+#~ msgid "Universal Access"
+#~ msgstr "Universal Access"
+
+#~ msgid "_Cancel"
+#~ msgstr "_Cancel"
