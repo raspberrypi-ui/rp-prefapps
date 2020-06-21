@@ -68,6 +68,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define PACK_ADD_IDS        15
 #define PACK_REBOOT         16
 #define PACK_ARCH           17
+#define PACK_RPDESC         18
 
 #define CAT_ICON            0
 #define CAT_NAME            1
@@ -75,7 +76,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Controls */
 
-static GtkWidget *main_dlg, *cat_tv, *pack_tv, *info_btn, *cancel_btn, *install_btn, *search_te;
+static GtkWidget *main_dlg, *cat_tv, *pack_tv, *cancel_btn, *install_btn, *search_te;
 static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn, *msg_cancel, *msg_pbv;
 static GtkWidget *err_dlg, *err_msg, *err_btn;
 
@@ -124,11 +125,9 @@ static gboolean net_available (void);
 static const char *cat_icon_name (char *category);
 static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
-static void package_selected (GtkTreeView *tv, gpointer ptr);
 static void category_selected (GtkTreeView *tv, gpointer ptr);
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data);
 static void cancel (GtkButton* btn, gpointer ptr);
-static void info (GtkButton* btn, gpointer ptr);
 static gboolean search_update (GtkEditable *editable, gpointer userdata);
 
 /*----------------------------------------------------------------------------*/
@@ -321,7 +320,7 @@ static void read_data_file (PkTask *task)
     GKeyFile *kf;
     gchar **groups, **pnames;
     gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch;
-    gboolean new, reboot;
+    gboolean new, reboot, rpdesc;
     int pcount = 0, gcount = 0;
 
     loc = setlocale (0, "");
@@ -352,6 +351,7 @@ static void read_data_file (PkTask *task)
             adds = g_key_file_get_value (kf, groups[gcount], "additional", NULL);
             reboot = g_key_file_get_boolean (kf, groups[gcount], "reboot", NULL);
             arch = g_key_file_get_value (kf, groups[gcount], "arch", NULL);
+            rpdesc = g_key_file_get_boolean (kf, groups[gcount], "rpdesc", NULL);
 
             // create array of package names
             pnames = realloc (pnames, (pcount + 1 + (rpack ? 2 : 1)) * sizeof (gchar *));
@@ -435,6 +435,7 @@ static void read_data_file (PkTask *task)
                 PACK_ADD_IDS, "none",
                 PACK_REBOOT, reboot,
                 PACK_ARCH, arch ? arch : "any",
+                PACK_RPDESC, rpdesc,
                 -1);
             if (icon) g_object_unref (icon);
 
@@ -475,7 +476,7 @@ static void reload_data_file (PkTask *task)
     GKeyFile *kf;
     gchar **groups, **pnames;
     gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch;
-    gboolean new, reboot;
+    gboolean new, reboot, rpdesc;
     int pcount = 0, gcount = 0;
 
     loc = setlocale (0, "");
@@ -502,6 +503,7 @@ static void reload_data_file (PkTask *task)
             adds = g_key_file_get_value (kf, groups[gcount], "additional", NULL);
             reboot = g_key_file_get_boolean (kf, groups[gcount], "reboot", NULL);
             arch = g_key_file_get_value (kf, groups[gcount], "arch", NULL);
+            rpdesc = g_key_file_get_boolean (kf, groups[gcount], "rpdesc", NULL);
 
             // create array of package names
             pnames = realloc (pnames, (pcount + 1 + (rpack ? 2 : 1)) * sizeof (gchar *));
@@ -562,6 +564,7 @@ static void reload_data_file (PkTask *task)
                 PACK_ADD_IDS, "none",
                 PACK_REBOOT, reboot,
                 PACK_ARCH, arch ? arch : "any",
+                PACK_RPDESC, rpdesc,
                 -1);
             if (icon) g_object_unref (icon);
 
@@ -793,9 +796,9 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     GPtrArray *array;
     GtkTreeIter iter;
     GtkTreeModel *scateg, *fcateg, *spackages, *fpackages;
-    gboolean valid;
-    gchar *pid, *rid, *sum;
-    const gchar *package_id;
+    gboolean valid, rpdesc;
+    gchar *pid, *rid, *desc, *esc;
+    const gchar *package_id, *sum, *pd;
     int i;
 
     results = error_handler (task, res, _("reading package details"), FALSE, TRUE);
@@ -811,27 +814,39 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
         valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
         while (valid)
         {
-            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_NAME, &pid, PACK_RPACKAGE_NAME, &rid, PACK_SUMMARY, &sum, -1);
-            if (match_pid (pid, package_id))
+            sum = pk_details_get_summary (item);
+            pd = pk_details_get_description (item);
+            if (sum && pd)
+                desc = g_strdup_printf ("%s\n\n%s", sum, pd);
+            else if (sum)
+                desc = g_strdup_printf ("%s", sum);
+            else if (pd)
+                desc = g_strdup_printf ("%s", pd);
+            else desc = g_strdup_printf ("No additional information on this application");
+            esc = g_markup_escape_text (desc, strlen (desc));
+            g_free (desc);
+
+            gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_NAME, &pid, PACK_RPACKAGE_NAME, &rid, PACK_RPDESC, &rpdesc, -1);
+
+            if (match_pid (pid, package_id) && !rpdesc)
             {
-                gtk_list_store_set (packages, &iter, PACK_DESCRIPTION, pk_details_get_description (item), PACK_SUMMARY, pk_details_get_summary (item), -1);
-                g_free (sum);
+                gtk_list_store_set (packages, &iter, PACK_DESCRIPTION, esc, -1);
+                g_free (esc);
                 g_free (pid);
                 g_free (rid);
                 break;
             }
 
-            if (match_pid (rid, package_id))
+            if (match_pid (rid, package_id) && rpdesc)
             {
-                if (!sum)
-                    gtk_list_store_set (packages, &iter, PACK_DESCRIPTION, pk_details_get_description (item), PACK_SUMMARY, pk_details_get_summary (item), -1);
-                g_free (sum);
+                gtk_list_store_set (packages, &iter, PACK_DESCRIPTION, esc, -1);
+                g_free (esc);
                 g_free (pid);
                 g_free (rid);
                 break;
             }
 
-            g_free (sum);
+            g_free (esc);
             g_free (pid);
             g_free (rid);
             valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
@@ -875,7 +890,6 @@ static void install (GtkButton* btn, gpointer ptr)
     gboolean valid, state, init, reboot;
     gchar *id, *rid, *addid, *addids;
 
-    gtk_widget_set_sensitive (info_btn, FALSE);
     gtk_widget_set_sensitive (cancel_btn, FALSE);
     gtk_widget_set_sensitive (install_btn, FALSE);
 
@@ -961,7 +975,6 @@ static void install (GtkButton* btn, gpointer ptr)
     {
         gtk_widget_set_sensitive (cancel_btn, TRUE);
         gtk_widget_set_sensitive (install_btn, TRUE);
-        package_selected (NULL, NULL);
     }
 }
 
@@ -1359,19 +1372,6 @@ static void message (char *msg, int wait, int prog)
 /* Handlers for main window user interaction                                  */
 /*----------------------------------------------------------------------------*/
 
-static void package_selected (GtkTreeView *tv, gpointer ptr)
-{
-    GtkTreeModel *model;
-    GtkTreeSelection *sel;
-    GList *rows;
-
-    model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
-    sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (pack_tv));
-    rows = gtk_tree_selection_get_selected_rows (sel, &model);
-    if (rows && rows->data) gtk_widget_set_sensitive (info_btn, TRUE);
-    else gtk_widget_set_sensitive (info_btn, FALSE);
-}
-
 static void category_selected (GtkTreeView *tv, gpointer ptr)
 {
     GtkTreeModel *model;
@@ -1420,42 +1420,6 @@ static void cancel (GtkButton* btn, gpointer ptr)
         message (_("An installed package requires a reboot.\nWould you like to reboot now?"), 2, -1);
     else
         gtk_main_quit ();
-}
-
-static void info (GtkButton* btn, gpointer ptr)
-{
-    GtkTreeIter iter, citer;
-    GtkTreeModel *model, *cmodel;
-    GtkTreeSelection *sel;
-    GList *rows;
-    GtkWidget *dlg, *img;
-    GdkPixbuf *pix;
-    gchar *sum = NULL, *desc = NULL, *name = NULL;
-
-    model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
-    sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (pack_tv));
-    rows = gtk_tree_selection_get_selected_rows (sel, &model);
-    if (rows && rows->data)
-    {
-        gtk_tree_model_get_iter (model, &iter, (GtkTreePath *) rows->data);
-
-        cmodel = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER (model));
-        gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &citer, &iter);
-
-        gtk_tree_model_get (cmodel, &citer, PACK_CELL_NAME, &name, PACK_DESCRIPTION, &desc, PACK_SUMMARY, &sum, PACK_ICON, &pix, -1);
-        if (!desc) desc = g_strdup (_("No additional information available for this package."));
-        dlg = gtk_message_dialog_new (GTK_WINDOW (main_dlg), GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT, GTK_MESSAGE_OTHER, GTK_BUTTONS_OK, "%s\n\n%s", sum, desc);
-        img = gtk_image_new_from_pixbuf (pix);
-        gtk_message_dialog_set_image (GTK_MESSAGE_DIALOG (dlg), img);
-        gtk_window_set_title (GTK_WINDOW (dlg), name);
-        gtk_window_set_type_hint (GTK_WINDOW (dlg), GDK_WINDOW_TYPE_HINT_MENU);
-        gtk_widget_show_all (dlg);
-        gtk_dialog_run (GTK_DIALOG (dlg));
-        gtk_widget_destroy (dlg);
-        g_free (sum);
-        g_free (desc);
-        g_free (name);
-    }
 }
 
 static gboolean search_update (GtkEditable *editable, gpointer userdata)
@@ -1525,14 +1489,16 @@ int main (int argc, char *argv[])
     main_dlg = (GtkWidget *) gtk_builder_get_object (builder, "main_window");
     cat_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview_cat");
     pack_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview_prog");
-    info_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_info");
     cancel_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_cancel");
     install_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_ok");
     search_te = (GtkWidget *) gtk_builder_get_object (builder, "search");
 
     // create list stores
     categories = gtk_list_store_new (3, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_STRING);
-    packages = gtk_list_store_new (18, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING);
+    packages = gtk_list_store_new (19, GDK_TYPE_PIXBUF, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING,
+        G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING,
+        G_TYPE_STRING, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_STRING,
+        G_TYPE_BOOLEAN, G_TYPE_STRING, G_TYPE_BOOLEAN);
 
     // set up tree views
     crp = gtk_cell_renderer_pixbuf_new ();
@@ -1544,6 +1510,7 @@ int main (int argc, char *argv[])
 
     gtk_widget_set_size_request (cat_tv, 160, -1);
     gtk_tree_view_set_headers_visible (GTK_TREE_VIEW (cat_tv), FALSE);
+    gtk_tree_view_set_tooltip_column (GTK_TREE_VIEW (pack_tv), PACK_DESCRIPTION);
 
     gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 0, "", crp, "pixbuf", PACK_ICON, NULL);
     gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 1, _("Application"), crt, "markup", PACK_CELL_TEXT, NULL);
@@ -1559,13 +1526,10 @@ int main (int argc, char *argv[])
     g_signal_connect (crb, "toggled", G_CALLBACK (install_toggled), NULL);
     g_signal_connect (cancel_btn, "clicked", G_CALLBACK (cancel), NULL);
     g_signal_connect (install_btn, "clicked", G_CALLBACK (install), NULL);
-    g_signal_connect (info_btn, "clicked", G_CALLBACK (info), NULL);
     g_signal_connect (main_dlg, "delete_event", G_CALLBACK (cancel), NULL);
     g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), "changed", G_CALLBACK (category_selected), NULL);
-    g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (pack_tv)), "changed", G_CALLBACK (package_selected), NULL);
     g_signal_connect (search_te, "changed", G_CALLBACK (search_update), NULL);
 
-    gtk_widget_set_sensitive (info_btn, FALSE);
     gtk_widget_set_sensitive (cancel_btn, FALSE);
     gtk_widget_set_sensitive (install_btn, FALSE);
 
