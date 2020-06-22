@@ -76,7 +76,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 /* Controls */
 
-static GtkWidget *main_dlg, *cat_tv, *pack_tv, *cancel_btn, *install_btn, *search_te;
+static GtkWidget *main_dlg, *cat_tv, *pack_tv, *close_btn, *apply_btn, *search_te;
 static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn, *msg_cancel, *msg_pbv;
 static GtkWidget *err_dlg, *err_msg, *err_btn;
 
@@ -110,11 +110,11 @@ static gboolean match_pid (char *name, const char *pid);
 static gboolean match_arch (char *arch);
 static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void details_done (PkTask *task, GAsyncResult *res, gpointer data);
-static void install (GtkButton* btn, gpointer ptr);
+static void install_handler (GtkButton* btn, gpointer ptr);
 static void install_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data);
-static gboolean ok_clicked (GtkButton *button, gpointer data);
-static gboolean reboot_clicked (GtkButton *button, gpointer data);
+static gboolean reload (GtkButton *button, gpointer data);
+static gboolean quit (GtkButton *button, gpointer data);
 static void error_box (char *msg, gboolean terminal);
 static void message (char *msg, int wait, int prog);
 static gboolean clock_synced (void);
@@ -127,7 +127,7 @@ static gboolean match_category (GtkTreeModel *model, GtkTreeIter *iter, gpointer
 static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 static void category_selected (GtkTreeView *tv, gpointer ptr);
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data);
-static void cancel (GtkButton* btn, gpointer ptr);
+static void close_handler (GtkButton* btn, gpointer ptr);
 static gboolean search_update (GtkEditable *editable, gpointer userdata);
 
 /*----------------------------------------------------------------------------*/
@@ -882,26 +882,26 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     gtk_tree_model_get_iter_first (GTK_TREE_MODEL (fcateg), &iter);
     gtk_tree_selection_select_iter (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), &iter);
 
-    gtk_widget_set_sensitive (cancel_btn, TRUE);
-    gtk_widget_set_sensitive (install_btn, TRUE);
+    gtk_widget_set_sensitive (close_btn, TRUE);
+    gtk_widget_set_sensitive (apply_btn, TRUE);
 
     gtk_widget_destroy (GTK_WIDGET (msg_dlg));
     msg_dlg = NULL;
 }
 
 /*----------------------------------------------------------------------------*/
-/* Handlers for asynchronous install and remove sequence at end               */
+/* Handlers for asynchronous install and remove sequence                      */
 /*----------------------------------------------------------------------------*/
 
-static void install (GtkButton* btn, gpointer ptr)
+static void install_handler (GtkButton* btn, gpointer ptr)
 {
     PkTask *task;
     GtkTreeIter iter;
     gboolean valid, state, init, reboot;
     gchar *id, *rid, *addid, *addids;
 
-    gtk_widget_set_sensitive (cancel_btn, FALSE);
-    gtk_widget_set_sensitive (install_btn, FALSE);
+    gtk_widget_set_sensitive (close_btn, FALSE);
+    gtk_widget_set_sensitive (apply_btn, FALSE);
 
     n_inst = 0;
     n_uninst = 0;
@@ -983,8 +983,8 @@ static void install (GtkButton* btn, gpointer ptr)
     }
     else
     {
-        gtk_widget_set_sensitive (cancel_btn, TRUE);
-        gtk_widget_set_sensitive (install_btn, TRUE);
+        gtk_widget_set_sensitive (close_btn, TRUE);
+        gtk_widget_set_sensitive (apply_btn, TRUE);
     }
 }
 
@@ -1228,7 +1228,7 @@ static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer d
 /* Progress / error box                                                       */
 /*----------------------------------------------------------------------------*/
 
-static gboolean ok_clicked (GtkButton *button, gpointer data)
+static gboolean reload (GtkButton *button, gpointer data)
 {
     PkTask *task;
 
@@ -1252,12 +1252,22 @@ static gboolean ok_clicked (GtkButton *button, gpointer data)
     return FALSE;
 }
 
-static gboolean reboot_clicked (GtkButton *button, gpointer data)
+static gboolean quit (GtkButton *button, gpointer data)
 {
-    gtk_widget_destroy (GTK_WIDGET (msg_dlg));
-    msg_dlg = NULL;
+    if (msg_dlg)
+    {
+        gtk_widget_destroy (GTK_WIDGET (msg_dlg));
+        msg_dlg = NULL;
+    }
+    if (err_dlg)
+    {
+        gtk_widget_destroy (GTK_WIDGET (err_dlg));
+        err_dlg = NULL;
+    }
+
+    if ((int) data == 1) system ("reboot");
+
     gtk_main_quit ();
-    if ((int) data) system ("reboot");
     return FALSE;
 }
 
@@ -1301,9 +1311,9 @@ static void error_box (char *msg, gboolean terminal)
 
         gtk_button_set_label (GTK_BUTTON (err_btn), "_OK");
         if (terminal)
-            g_signal_connect (err_btn, "clicked", G_CALLBACK (cancel), NULL);
+            g_signal_connect (err_btn, "clicked", G_CALLBACK (quit), (void *) 0);
         else
-            g_signal_connect (err_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
+            g_signal_connect (err_btn, "clicked", G_CALLBACK (reload), NULL);
 
         gtk_widget_show_all (err_dlg);
         g_object_unref (builder);
@@ -1314,6 +1324,13 @@ static void error_box (char *msg, gboolean terminal)
 
 static void message (char *msg, int wait, int prog)
 {
+    if (err_dlg)
+    {
+        // clear any existing error box
+        gtk_widget_destroy (GTK_WIDGET (err_dlg));
+        err_dlg = NULL;
+    }
+
     if (!msg_dlg)
     {
         GtkBuilder *builder;
@@ -1352,14 +1369,14 @@ static void message (char *msg, int wait, int prog)
         if (wait > 1)
         {
             gtk_button_set_label (GTK_BUTTON (msg_btn), "_Yes");
-            g_signal_connect (msg_btn, "clicked", G_CALLBACK (reboot_clicked), (void *) 1);
-            g_signal_connect (msg_cancel, "clicked", G_CALLBACK (reboot_clicked), (void *) 0);
+            g_signal_connect (msg_btn, "clicked", G_CALLBACK (quit), (void *) 1);
+            g_signal_connect (msg_cancel, "clicked", G_CALLBACK (quit), (void *) 0);
             gtk_widget_set_visible (msg_cancel, TRUE);
         }
         else
         {
             gtk_button_set_label (GTK_BUTTON (msg_btn), "_OK");
-            g_signal_connect (msg_btn, "clicked", G_CALLBACK (ok_clicked), NULL);
+            g_signal_connect (msg_btn, "clicked", G_CALLBACK (reload), NULL);
             gtk_widget_set_visible (msg_cancel, FALSE);
         }
         gtk_widget_set_visible (msg_btn, TRUE);
@@ -1424,7 +1441,7 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
     g_free (desc);
 }
 
-static void cancel (GtkButton* btn, gpointer ptr)
+static void close_handler (GtkButton* btn, gpointer ptr)
 {
     if (needs_reboot)
         message (_("An installed package requires a reboot.\nWould you like to reboot now?"), 2, -1);
@@ -1499,8 +1516,8 @@ int main (int argc, char *argv[])
     main_dlg = (GtkWidget *) gtk_builder_get_object (builder, "main_window");
     cat_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview_cat");
     pack_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview_prog");
-    cancel_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_cancel");
-    install_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_ok");
+    close_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_cancel");
+    apply_btn = (GtkWidget *) gtk_builder_get_object (builder, "button_ok");
     search_te = (GtkWidget *) gtk_builder_get_object (builder, "search");
 
     // create list stores
@@ -1534,14 +1551,14 @@ int main (int argc, char *argv[])
     gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), 50);
 
     g_signal_connect (crb, "toggled", G_CALLBACK (install_toggled), NULL);
-    g_signal_connect (cancel_btn, "clicked", G_CALLBACK (cancel), NULL);
-    g_signal_connect (install_btn, "clicked", G_CALLBACK (install), NULL);
-    g_signal_connect (main_dlg, "delete_event", G_CALLBACK (cancel), NULL);
+    g_signal_connect (close_btn, "clicked", G_CALLBACK (close_handler), NULL);
+    g_signal_connect (apply_btn, "clicked", G_CALLBACK (install_handler), NULL);
+    g_signal_connect (main_dlg, "delete_event", G_CALLBACK (close_handler), NULL);
     g_signal_connect (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), "changed", G_CALLBACK (category_selected), NULL);
     g_signal_connect (search_te, "changed", G_CALLBACK (search_update), NULL);
 
-    gtk_widget_set_sensitive (cancel_btn, FALSE);
-    gtk_widget_set_sensitive (install_btn, FALSE);
+    gtk_widget_set_sensitive (close_btn, FALSE);
+    gtk_widget_set_sensitive (apply_btn, FALSE);
 
     gtk_window_set_default_size (GTK_WINDOW (main_dlg), 640, 400);
     gtk_widget_show_all (main_dlg);
