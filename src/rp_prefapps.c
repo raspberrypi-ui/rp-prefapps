@@ -817,14 +817,24 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
             sum = pk_details_get_summary (item);
             pd = pk_details_get_description (item);
             if (sum && pd)
-                desc = g_strdup_printf ("%s\n\n%s", sum, pd);
+            {
+                if (strcmp (sum, pd))
+                    desc = g_strdup_printf ("%s\n\n%s", sum, pd);
+                else
+                    desc = g_strdup_printf ("%s", sum);
+            }
             else if (sum)
                 desc = g_strdup_printf ("%s", sum);
             else if (pd)
                 desc = g_strdup_printf ("%s", pd);
-            else desc = g_strdup_printf ("No additional information on this application");
-            esc = g_markup_escape_text (desc, strlen (desc));
-            g_free (desc);
+            else desc = NULL;
+
+            if (desc)
+            {
+                esc = g_markup_escape_text (desc, strlen (desc));
+                g_free (desc);
+            }
+            else esc = NULL;
 
             gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_NAME, &pid, PACK_RPACKAGE_NAME, &rid, PACK_RPDESC, &rpdesc, -1);
 
