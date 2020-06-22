@@ -1444,7 +1444,7 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
 static void close_handler (GtkButton* btn, gpointer ptr)
 {
     if (needs_reboot)
-        message (_("An installed package requires a reboot.\nWould you like to reboot now?"), 2, -1);
+        message (_("An installed application requires a reboot.\nWould you like to reboot now?"), 2, -1);
     else
         gtk_main_quit ();
 }
