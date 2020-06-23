@@ -92,6 +92,7 @@ gchar **pinst, **puninst;
 char *lang, *lang_loc;
 gboolean needs_reboot, no_update = FALSE;
 int calls;
+gchar *sel_cat;
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes                                                                 */
@@ -870,7 +871,7 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fpackages), (GtkTreeModelFilterVisibleFunc) match_category, NULL, NULL);
     gtk_tree_view_set_model (GTK_TREE_VIEW (pack_tv), GTK_TREE_MODEL (fpackages));
 
-    // set up filtered and sorted package list
+    // set up filtered and sorted category list
     scateg = gtk_tree_model_sort_new_with_model (GTK_TREE_MODEL (categories));
     gtk_tree_sortable_set_sort_func (GTK_TREE_SORTABLE (scateg), CAT_NAME, category_sort, NULL, NULL);
     gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE (scateg), CAT_NAME, GTK_SORT_ASCENDING);
@@ -878,8 +879,8 @@ static void details_done (PkTask *task, GAsyncResult *res, gpointer data)
     gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (fcateg), (GtkTreeModelFilterVisibleFunc) packs_in_cat, NULL, NULL);
     gtk_tree_view_set_model (GTK_TREE_VIEW (cat_tv), GTK_TREE_MODEL (fcateg));
 
-    // select 'All Programs' category
-    gtk_tree_model_get_iter_first (GTK_TREE_MODEL (fcateg), &iter);
+    // select category
+    gtk_tree_model_get_iter_from_string (GTK_TREE_MODEL (fcateg), &iter, sel_cat);
     gtk_tree_selection_select_iter (gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv)), &iter);
 
     gtk_widget_set_sensitive (close_btn, TRUE);
@@ -1403,6 +1404,18 @@ static void category_selected (GtkTreeView *tv, gpointer ptr)
 {
     GtkTreeModel *model;
     GtkTreePath *path;
+    GtkTreeSelection *sel;
+    GtkTreeIter iter;
+
+    // store the path of the new selection so it can be reloaded
+    sel = gtk_tree_view_get_selection (GTK_TREE_VIEW (cat_tv));
+    if (sel && gtk_tree_selection_get_selected (sel, &model, &iter))
+    {
+        g_free (sel_cat);
+        path = gtk_tree_model_get_path (model, &iter);
+        sel_cat = gtk_tree_path_to_string (path);
+        gtk_tree_path_free (path);
+    }
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     path = gtk_tree_path_new_first ();
@@ -1577,6 +1590,8 @@ int main (int argc, char *argv[])
         }
     }
     else error_box (_("No network connection - applications cannot be installed"), TRUE);
+
+    sel_cat = g_strdup_printf ("0");
 
     gtk_main ();
 
