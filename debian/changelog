@@ -1,3 +1,9 @@
+rp-prefapps (0.22) buster; urgency=medium
+
+  * Allow multiple install and remove operations without restarting
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 07 Jul 2020 10:18:55 +0100
+
 rp-prefapps (0.21) buster; urgency=medium
 
   * Changes to handle 64 and 32 bit packages both being offered
