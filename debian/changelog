@@ -1,3 +1,9 @@
+rp-prefapps (0.24) buster; urgency=medium
+
+  * Italian translation updated
+
+ -- Simon Long <simon@raspberrypi.com>  Wed, 15 Jul 2020 08:01:35 +0100
+
 rp-prefapps (0.23) buster; urgency=medium
 
   * Allow multiple install and remove operations without restarting
