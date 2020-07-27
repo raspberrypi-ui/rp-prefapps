@@ -11,6 +11,6 @@ Vcs-Browser: https://github.com/raspberrypi-ui/rp_prefapps
 
 Package: rp-prefapps
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, packagekit, zenity
+Depends: ${shlibs:Depends}, ${misc:Depends}, packagekit, zenity, raspi-config
 Description: Raspberry Pi recommended applications
  Installer for selected packages recommended for Raspberry Pi users

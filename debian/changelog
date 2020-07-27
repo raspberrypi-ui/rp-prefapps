@@ -1,3 +1,9 @@
+rp-prefapps (0.25) buster; urgency=medium
+
+  * Filter out 64-bit packages on x86
+
+ -- Simon Long <simon@raspberrypi.com>  Mon, 27 Jul 2020 13:46:39 +0100
+
 rp-prefapps (0.24) buster; urgency=medium
 
   * Italian translation updated
