@@ -90,7 +90,7 @@ guint n_inst, n_uninst;
 gchar **pinst, **puninst;
 
 char *lang, *lang_loc;
-gboolean needs_reboot, no_update = FALSE;
+gboolean needs_reboot, no_update = FALSE, is_pi = TRUE;
 int calls;
 gchar *sel_cat;
 
@@ -103,6 +103,7 @@ static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
 static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gboolean silent, gboolean terminal);
 static gboolean update_self (gpointer data);
 static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
+static gboolean filter_fn (PkPackage *package, gpointer user_data);
 static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void update_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void read_data_file (PkTask *task);
@@ -277,10 +278,17 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
     pk_client_resolve_async (PK_CLIENT (task), 0, pkg, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_1_done, NULL);
 }
 
+static gboolean filter_fn (PkPackage *package, gpointer user_data)
+{
+    if (is_pi) return TRUE;
+    if (strstr (pk_package_get_arch (package), "amd64")) return FALSE;
+    return TRUE;
+}
+
 static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
-    PkPackageSack *sack;
+    PkPackageSack *sack, *fsack;
     gchar **ids;
 
     results = error_handler (task, res, _("finding packages"), TRUE, FALSE);
@@ -289,18 +297,22 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (results)
     {
         sack = pk_results_get_package_sack (results);
-        ids = pk_package_sack_get_ids (sack);
+        fsack = pk_package_sack_filter (sack, filter_fn, NULL);
+
+        ids = pk_package_sack_get_ids (fsack);
         if (*ids)
         {
             message (_("Updating application - please wait..."), 0 , -1);
             pk_task_update_packages_async (task, ids, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
             g_strfreev (ids);
             g_object_unref (sack);
+            g_object_unref (fsack);
         }
         else
         {
             g_strfreev (ids);
             g_object_unref (sack);
+            g_object_unref (fsack);
             read_data_file (task);
         }
     }
@@ -628,7 +640,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
     PkPackage *item;
-    PkPackageSack *sack;
+    PkPackageSack *sack, *fsack;
     PkInfoEnum info;
     GPtrArray *array;
     GtkTreeIter iter;
@@ -642,7 +654,9 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     results = error_handler (task, res, _("finding packages"), FALSE, TRUE);
     if (!results) return;
 
-    array = pk_results_get_package_array (results);
+    sack = pk_results_get_package_sack (results);
+    fsack = pk_package_sack_filter (sack, filter_fn, NULL);
+    array = pk_package_sack_get_array (fsack);
 
     // Need to loop through the array of returned IDs twice. On the first pass, only look at
     // IDs of packages which are installed; for each of those, store the ID. Need to store both
@@ -765,11 +779,11 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
 
     message (_("Reading package details - please wait..."), 0 , -1);
 
-    sack = pk_results_get_package_sack (results);
-    ids = pk_package_sack_get_ids (sack);
+    ids = pk_package_sack_get_ids (fsack);
     pk_client_get_details_async (PK_CLIENT (task), ids, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
     g_strfreev (ids);
     g_object_unref (sack);
+    g_object_unref (fsack);
 }
 
 static int category_sort (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointer userdata)
@@ -1515,6 +1529,8 @@ int main (int argc, char *argv[])
 #endif
     get_locales ();
     needs_reboot = FALSE;
+
+    if (system ("raspi-config nonint is_pi")) is_pi = FALSE;
 
     // GTK setup
     gdk_threads_init ();
