@@ -131,6 +131,7 @@ static void category_selected (GtkTreeView *tv, gpointer ptr);
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data);
 static void close_handler (GtkButton* btn, gpointer ptr);
 static gboolean search_update (GtkEditable *editable, gpointer userdata);
+static void get_locales (void);
 
 /*----------------------------------------------------------------------------*/
 /* Helper functions for async operations                                      */
@@ -310,7 +311,6 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
         }
         else
         {
-            g_strfreev (ids);
             g_object_unref (sack);
             g_object_unref (fsack);
             read_data_file (task);
@@ -776,6 +776,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
         }
         g_free (package_id);
     }
+    g_ptr_array_unref (array);
 
     message (_("Reading package details - please wait..."), 0 , -1);
 
@@ -1527,10 +1528,11 @@ int main (int argc, char *argv[])
     bind_textdomain_codeset ( GETTEXT_PACKAGE, "UTF-8" );
     textdomain ( GETTEXT_PACKAGE );
 #endif
-    get_locales ();
-    needs_reboot = FALSE;
 
     if (system ("raspi-config nonint is_pi")) is_pi = FALSE;
+
+    get_locales ();
+    needs_reboot = FALSE;
 
     // GTK setup
     gdk_threads_init ();
