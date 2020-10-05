@@ -1,3 +1,9 @@
+rp-prefapps (0.27) buster; urgency=medium
+
+  * Norwegian translation updated
+
+ -- Simon Long <simon@raspberrypi.com>  Mon, 05 Oct 2020 10:47:15 +0100
+
 rp-prefapps (0.26) buster; urgency=medium
 
   * Fix some memory leaks
