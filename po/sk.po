@@ -1,0 +1,252 @@
+# Slovak translations for rp_prefapps package.
+# Copyright (C) 2018 Raspberry Pi Ltd
+# This file is distributed under the same license as the rp_prefapps package.
+# Jose Riha <jose1711 gmail com>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: rp_prefapps 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-06-22 09:44+0100\n"
+"PO-Revision-Date: 2020-12-14 21:24+0100\n"
+"Last-Translator: Jose Riha <jose1711@gmail.com>\n"
+"Language-Team: Slovak\n"
+"Language: sk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1?0:((n>=2&&n<=4)?1:2));\n"
+"X-Generator: Poedit 2.4.1\n"
+
+#: ../src/rp_prefapps.c:166 ../src/rp_prefapps.c:256 ../src/rp_prefapps.c:1246
+msgid "Updating package data - please wait..."
+msgstr "Aktualizujem údaje o balíkoch - čakajte, prosím..."
+
+#: ../src/rp_prefapps.c:172 ../src/rp_prefapps.c:274 ../src/rp_prefapps.c:465
+#: ../src/rp_prefapps.c:594
+msgid "Finding packages - please wait..."
+msgstr "Hľadám balíky - čakajte, prosím..."
+
+#: ../src/rp_prefapps.c:178 ../src/rp_prefapps.c:294
+msgid "Updating application - please wait..."
+msgstr "Aktualizujem aplikáciu - čakajte, prosím..."
+
+#: ../src/rp_prefapps.c:184 ../src/rp_prefapps.c:765
+msgid "Reading package details - please wait..."
+msgstr "Čítam podrobnosti o balíkoch - čakajte, prosím..."
+
+#: ../src/rp_prefapps.c:192
+#, c-format
+msgid "%s %s - please wait..."
+msgstr "%s %s - čakajte, prosím..."
+
+#: ../src/rp_prefapps.c:192
+msgid "Installing"
+msgstr "Inštalujem"
+
+#: ../src/rp_prefapps.c:192
+msgid "Downloading"
+msgstr "Preberám"
+
+#: ../src/rp_prefapps.c:193
+msgid "packages"
+msgstr "balíky"
+
+#: ../src/rp_prefapps.c:205
+#, c-format
+msgid "Removing %s - please wait..."
+msgstr "Odstraňujem %s - čakajte, prosím..."
+
+#: ../src/rp_prefapps.c:209 ../src/rp_prefapps.c:979 ../src/rp_prefapps.c:997
+msgid "Removing packages - please wait..."
+msgstr "Odstraňujem balíky - čakajte, prosím..."
+
+#: ../src/rp_prefapps.c:229 ../src/rp_prefapps.c:239
+#, c-format
+msgid "Error %s - %s"
+msgstr "Chyba %s - %s"
+
+#: ../src/rp_prefapps.c:272
+msgid "updating package data"
+msgstr "aktualizujem údaje o balíkoch"
+
+#: ../src/rp_prefapps.c:285 ../src/rp_prefapps.c:641
+msgid "finding packages"
+msgstr "hľadám balíky"
+
+#: ../src/rp_prefapps.c:339 ../src/rp_prefapps.c:782 ../src/rp_prefapps.c:783
+msgid "All Programs"
+msgstr "Všetky programy"
+
+#: ../src/rp_prefapps.c:421 ../src/rp_prefapps.c:550
+#, c-format
+msgid ""
+"<b>%s</b>\n"
+"%s"
+msgstr ""
+"<b>%s</b>\n"
+"%s"
+
+#: ../src/rp_prefapps.c:461 ../src/rp_prefapps.c:590
+msgid "Unable to open package data file"
+msgstr "Nepodarilo sa otvoriť súbor s údajmi o balíku"
+
+#: ../src/rp_prefapps.c:804
+msgid "reading package details"
+msgstr "čítam podrobnosti o balíkoch"
+
+#: ../src/rp_prefapps.c:972
+msgid "Installing packages - please wait..."
+msgstr "Inštalujem balíky - čakajte, prosím..."
+
+#: ../src/rp_prefapps.c:993
+msgid "installing packages"
+msgstr "inštalujem balíky"
+
+#: ../src/rp_prefapps.c:1002
+msgid "Installation complete"
+msgstr "Inštalácia dokončená"
+
+#: ../src/rp_prefapps.c:1007
+msgid "removing packages"
+msgstr "odstraňujem balíky"
+
+#: ../src/rp_prefapps.c:1010
+msgid "Installation and removal complete"
+msgstr "Inštalovanie a odstraňovanie programov dokončené"
+
+#: ../src/rp_prefapps.c:1012
+msgid "Removal complete"
+msgstr "Odstraňovanie dokončené"
+
+#: ../src/rp_prefapps.c:1053
+msgid "Error synchronising clock - could not sync with time server"
+msgstr "Chyba pri synchronizácií hodín - čas sa nepodarilo synchronizovať s časovým serverom"
+
+#: ../src/rp_prefapps.c:1099
+msgid "Programming"
+msgstr "Programovanie"
+
+#: ../src/rp_prefapps.c:1102
+msgid "Office"
+msgstr "Kancelária"
+
+#: ../src/rp_prefapps.c:1105
+msgid "Internet"
+msgstr "Internet"
+
+#: ../src/rp_prefapps.c:1108
+msgid "Games"
+msgstr "Hry"
+
+#: ../src/rp_prefapps.c:1111
+msgid "Other"
+msgstr "Ostatné"
+
+#: ../src/rp_prefapps.c:1114
+msgid "Accessories"
+msgstr "Príslušenstvo"
+
+#: ../src/rp_prefapps.c:1117
+msgid "Sound & Video"
+msgstr "Zvuk a video"
+
+#: ../src/rp_prefapps.c:1120
+msgid "System Tools"
+msgstr "Systémové nástroje"
+
+#: ../src/rp_prefapps.c:1123
+msgid "Engineering"
+msgstr "Technika"
+
+#: ../src/rp_prefapps.c:1126
+msgid "Education"
+msgstr "Vzdelávanie"
+
+#: ../src/rp_prefapps.c:1129
+msgid "Graphics"
+msgstr "Grafika"
+
+#: ../src/rp_prefapps.c:1132
+msgid "Science & Maths"
+msgstr "Veda a matematika"
+
+#: ../src/rp_prefapps.c:1135
+msgid "Preferences"
+msgstr "Predvoľby"
+
+#: ../src/rp_prefapps.c:1138
+msgid "Universal Access"
+msgstr "Bezbariérový prístup"
+
+#: ../src/rp_prefapps.c:1432
+msgid "   <b><small>(will be installed)</small></b>"
+msgstr "   <b><small>(nainštaluje sa)</small></b>"
+
+#: ../src/rp_prefapps.c:1433
+msgid "   <b><small>(will be removed)</small></b>"
+msgstr "   <b><small>(odstráni sa)</small></b>"
+
+#: ../src/rp_prefapps.c:1436
+#, c-format
+msgid ""
+"<b>%s</b>%s\n"
+"%s"
+msgstr ""
+"<b>%s</b>%s\n"
+"%s"
+
+#: ../src/rp_prefapps.c:1447
+msgid ""
+"An installed application requires a reboot.\n"
+"Would you like to reboot now?"
+msgstr ""
+"Nainštalovaná aplikácia vyžaduje reštart.\n"
+"Chcete reštartovať teraz?"
+
+#: ../src/rp_prefapps.c:1543
+msgid "Application"
+msgstr "Aplikácia"
+
+#: ../src/rp_prefapps.c:1544
+msgid "Install"
+msgstr "Nainštalovať"
+
+#: ../src/rp_prefapps.c:1574
+msgid "Synchronising clock - please wait..."
+msgstr "Synchronizujem čas - čakajte, prosím..."
+
+#: ../src/rp_prefapps.c:1579
+msgid "No network connection - applications cannot be installed"
+msgstr "Chýba sieťové pripojenie - aplikácie nie je možné inštalovať"
+
+#. End of file
+#. ----------------------------------------------------------------------------
+#: ../data/rp_prefapps.ui.h:1
+msgid "_OK"
+msgstr "_OK"
+
+#: ../data/rp_prefapps.ui.h:2
+msgid "_No"
+msgstr "_Nie"
+
+#: ../data/rp_prefapps.ui.h:3 ../data/rp-prefapps.desktop.in.h:1
+msgid "Recommended Software"
+msgstr "Odporúčaný softvér"
+
+#: ../data/rp_prefapps.ui.h:4
+msgid "_Close"
+msgstr "_Zavrieť"
+
+#: ../data/rp_prefapps.ui.h:5
+msgid "_Apply"
+msgstr "_Použiť"
+
+#: ../data/rp-prefapps.desktop.in.h:2
+msgid "Install additional programs recommended for use on the Pi"
+msgstr "Nainštalujte ďalšie odporúčané programy pre Raspberry Pi"
+
+#: ../data/pwdrpp.sh:6
+msgid "Password Required"
+msgstr "Vyžadované heslo"
+
