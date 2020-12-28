@@ -7,11 +7,11 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rp_prefapps 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-22 09:44+0100\n"
-"PO-Revision-Date: 2018-10-29 07:24+0000\n"
-"Last-Translator: Simon Long <simon@raspberrypi.org>\n"
-"Language-Team: English (British)\n"
-"Language: en_GB\n"
+"POT-Creation-Date: 2020-12-28 09:44+0100\n"
+"PO-Revision-Date: 2020-12-28 07:24+0000\n"
+"Last-Translator: Armath TechCommunity <info@armath.am>\n"
+"Language-Team: Armenian \n"
+"Language: hy\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=ISO-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -19,63 +19,63 @@ msgstr ""
 
 #: ../src/rp_prefapps.c:166 ../src/rp_prefapps.c:256 ../src/rp_prefapps.c:1246
 msgid "Updating package data - please wait..."
-msgstr "Updating package data - please wait..."
+msgstr "Փաթեթի տվյալների թարմացում - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:172 ../src/rp_prefapps.c:274 ../src/rp_prefapps.c:465
 #: ../src/rp_prefapps.c:594
 msgid "Finding packages - please wait..."
-msgstr "Finding packages - please wait..."
+msgstr "Փաթեթների որոնում - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:178 ../src/rp_prefapps.c:294
 msgid "Updating application - please wait..."
-msgstr "Updating application - please wait..."
+msgstr "Ծրագրի թարմացում - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:184 ../src/rp_prefapps.c:765
 msgid "Reading package details - please wait..."
-msgstr "Reading package details - please wait..."
+msgstr "Փաթեթի դետալների ընթերցում - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:192
 #, c-format
 msgid "%s %s - please wait..."
-msgstr "%s %s - please wait..."
+msgstr "%s %s - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:192
 msgid "Installing"
-msgstr "Installing"
+msgstr "Տեղակայում"
 
 #: ../src/rp_prefapps.c:192
 msgid "Downloading"
-msgstr "Downloading"
+msgstr "Ներբեռնում"
 
 #: ../src/rp_prefapps.c:193
 msgid "packages"
-msgstr "packages"
+msgstr "փաթեթներ"
 
 #: ../src/rp_prefapps.c:205
 #, c-format
 msgid "Removing %s - please wait..."
-msgstr "Removing %s - please wait..."
+msgstr "%s -ի հեռացոըն - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:209 ../src/rp_prefapps.c:979 ../src/rp_prefapps.c:997
 msgid "Removing packages - please wait..."
-msgstr "Removing packages - please wait..."
+msgstr "Փաթեթների հեռացում - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:229 ../src/rp_prefapps.c:239
 #, c-format
 msgid "Error %s - %s"
-msgstr "Error %s - %s"
+msgstr "%s -ի սխալմունք - %s"
 
 #: ../src/rp_prefapps.c:272
 msgid "updating package data"
-msgstr "updating package data"
+msgstr "փաթեթի տվյալների թարմացում"
 
 #: ../src/rp_prefapps.c:285 ../src/rp_prefapps.c:641
 msgid "finding packages"
-msgstr "finding packages"
+msgstr "փաթեթների որոնում"
 
 #: ../src/rp_prefapps.c:339 ../src/rp_prefapps.c:782 ../src/rp_prefapps.c:783
 msgid "All Programs"
-msgstr "All Programs"
+msgstr "Բոլոր ծրագրերը"
 
 #: ../src/rp_prefapps.c:421 ../src/rp_prefapps.c:550
 #, c-format
@@ -88,103 +88,103 @@ msgstr ""
 
 #: ../src/rp_prefapps.c:461 ../src/rp_prefapps.c:590
 msgid "Unable to open package data file"
-msgstr "Unable to open package data file"
+msgstr "Հնարավոր չէ բացել փաթեթի տվյալների նիշքը"
 
 #: ../src/rp_prefapps.c:804
 msgid "reading package details"
-msgstr "reading package details"
+msgstr "փաթեթի դետալների ընթերցում"
 
 #: ../src/rp_prefapps.c:972
 msgid "Installing packages - please wait..."
-msgstr "Installing packages - please wait..."
+msgstr "Փաթեթի տեղադրում - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:993
 msgid "installing packages"
-msgstr "installing packages"
+msgstr "Փաթեթների տեղադրում"
 
 #: ../src/rp_prefapps.c:1002
 msgid "Installation complete"
-msgstr "Installation complete"
+msgstr "Տեղադրումն ավարտվեց"
 
 #: ../src/rp_prefapps.c:1007
 msgid "removing packages"
-msgstr "removing packages"
+msgstr "փաթեթների հեռացում"
 
 #: ../src/rp_prefapps.c:1010
 msgid "Installation and removal complete"
-msgstr "Installation and removal complete"
+msgstr "Տեղադրման և հեռացման ավարտ"
 
 #: ../src/rp_prefapps.c:1012
 msgid "Removal complete"
-msgstr "Removal complete"
+msgstr "Հեռացումն ավարտվեց"
 
 #: ../src/rp_prefapps.c:1053
 msgid "Error synchronising clock - could not sync with time server"
-msgstr "Error synchronising clock - could not sync with time server"
+msgstr "ժամի սինխրոնիզացման սխալմունք - չհաջողվեց սինքրոնիզացնել ժամային սերվերը"
 
 #: ../src/rp_prefapps.c:1099
 msgid "Programming"
-msgstr "Programming"
+msgstr "Ծրագրավորում"
 
 #: ../src/rp_prefapps.c:1102
 msgid "Office"
-msgstr "Office"
+msgstr "Օֆիս"
 
 #: ../src/rp_prefapps.c:1105
 msgid "Internet"
-msgstr "Internet"
+msgstr "Համացանց"
 
 #: ../src/rp_prefapps.c:1108
 msgid "Games"
-msgstr "Games"
+msgstr "Խաղեր"
 
 #: ../src/rp_prefapps.c:1111
 msgid "Other"
-msgstr "Other"
+msgstr "Այլ"
 
 #: ../src/rp_prefapps.c:1114
 msgid "Accessories"
-msgstr "Accessories"
+msgstr "Աքսեսուարներ"
 
 #: ../src/rp_prefapps.c:1117
 msgid "Sound & Video"
-msgstr "Sound & Video"
+msgstr "Ձայն և տեսանյութ"
 
 #: ../src/rp_prefapps.c:1120
 msgid "System Tools"
-msgstr "System Tools"
+msgstr "Համակարգի գործիքներ"
 
 #: ../src/rp_prefapps.c:1123
 msgid "Engineering"
-msgstr "Engineering"
+msgstr "Ճարտարագիտություն"
 
 #: ../src/rp_prefapps.c:1126
 msgid "Education"
-msgstr "Education"
+msgstr "Ուսուցողական"
 
 #: ../src/rp_prefapps.c:1129
 msgid "Graphics"
-msgstr "Graphics"
+msgstr "Գրաֆիկա"
 
 #: ../src/rp_prefapps.c:1132
 msgid "Science & Maths"
-msgstr "Science & Maths"
+msgstr "Գիտություն և մաթեմատիկա"
 
 #: ../src/rp_prefapps.c:1135
 msgid "Preferences"
-msgstr "Preferences"
+msgstr "Նախընտրանքներ"
 
 #: ../src/rp_prefapps.c:1138
 msgid "Universal Access"
-msgstr "Universal Access"
+msgstr "Հասանելիություն"
 
 #: ../src/rp_prefapps.c:1432
 msgid "   <b><small>(will be installed)</small></b>"
-msgstr "   <b><small>(will be installed)</small></b>"
+msgstr "   <b><small>(կտեղադրվի)</small></b>"
 
 #: ../src/rp_prefapps.c:1433
 msgid "   <b><small>(will be removed)</small></b>"
-msgstr "   <b><small>(will be removed)</small></b>"
+msgstr "   <b><small>(կհեռացվի)</small></b>"
 
 #: ../src/rp_prefapps.c:1436
 #, c-format
@@ -200,38 +200,38 @@ msgid ""
 "An installed application requires a reboot.\n"
 "Would you like to reboot now?"
 msgstr ""
-"An installed application requires a reboot.\n"
-"Would you like to reboot now?"
+"Տեղադրված ծրագիրը պահանջում է վերագործարկում.\n"
+"Ցանկանո՞ւմ եք վերագործարկել հիմա"
 
 #: ../src/rp_prefapps.c:1543
 msgid "Application"
-msgstr "Application"
+msgstr "Հավելված"
 
 #: ../src/rp_prefapps.c:1544
 msgid "Install"
-msgstr "Install"
+msgstr "Տեղադրել"
 
 #: ../src/rp_prefapps.c:1574
 msgid "Synchronising clock - please wait..."
-msgstr "Synchronising clock - please wait..."
+msgstr "Ժամի սինխրոնիզացում - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:1579
 msgid "No network connection - applications cannot be installed"
-msgstr "No network connection - applications cannot be installed"
+msgstr "Համացանցը առկա չէ - հավելվածը չի կարող տեղադրվել"
 
 #. End of file
 #. ----------------------------------------------------------------------------
 #: ../data/rp_prefapps.ui.h:1
 msgid "_OK"
-msgstr "_OK"
+msgstr "_Լավ"
 
 #: ../data/rp_prefapps.ui.h:2
 msgid "_No"
-msgstr "_No"
+msgstr "_Ոչ"
 
 #: ../data/rp_prefapps.ui.h:3 ../data/rp-prefapps.desktop.in.h:1
 msgid "Recommended Software"
-msgstr "Recommended Software"
+msgstr "Առաջարկվող ծրագրեր"
 
 #: ../data/rp_prefapps.ui.h:4
 msgid "_Close"
@@ -239,30 +239,30 @@ msgstr "_Close"
 
 #: ../data/rp_prefapps.ui.h:5
 msgid "_Apply"
-msgstr "_Apply"
+msgstr "_Հաստատել"
 
 #: ../data/rp-prefapps.desktop.in.h:2
 msgid "Install additional programs recommended for use on the Pi"
-msgstr "Install additional programs recommended for use on the Raspberry Pi"
+msgstr "Տեղադրել հավելյալ ծրագրեր"
 
 #: ../data/pwdrpp.sh:6
 msgid "Password Required"
-msgstr "Password Required"
+msgstr "Գաղտնաբառը պարտադիր է"
 
 #~ msgid "No additional information available for this package."
 #~ msgstr "No additional information available for this package."
 
 #~ msgid "More _Info"
-#~ msgstr "More _Info"
+#~ msgstr "Ավել _տվյալներ"
 
 #~ msgid ""
 #~ "Installation and removal complete.\n"
 #~ "An installed package requires a reboot.\n"
 #~ "Would you like to reboot now?"
 #~ msgstr ""
-#~ "Installation and removal complete.\n"
-#~ "An installed package requires a reboot.\n"
-#~ "Would you like to reboot now?"
+#~ "Տեղադրման և հեռացման ավարտ։\n"
+#~ "Տեղադրված փաթեթը պահանջում է վերագործարկում։\n"
+#~ "Ցանկանո՞ւմ եք վերագործարկել հիմա"
 
 #~ msgid "_Cancel"
-#~ msgstr "_Cancel"
+#~ msgstr "_չեղարկել"
