@@ -1,3 +1,9 @@
+rp-prefapps (0.29) buster; urgency=medium
+
+  * Add Armenian translation
+
+ -- Simon Long <simon@raspberrypi.com>  Sun, 03 Jan 2021 20:21:29 +0000
+
 rp-prefapps (0.28) buster; urgency=medium
 
   * Remove Scratch 2
