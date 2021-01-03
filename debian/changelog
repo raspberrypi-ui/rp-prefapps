@@ -1,3 +1,9 @@
+rp-prefapps (0.30) buster; urgency=medium
+
+  * Add Slovak translation
+
+ -- Simon Long <simon@raspberrypi.com>  Sun, 03 Jan 2021 21:45:41 +0000
+
 rp-prefapps (0.29) buster; urgency=medium
 
   * Add Armenian translation
