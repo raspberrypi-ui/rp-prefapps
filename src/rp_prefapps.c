@@ -330,6 +330,7 @@ static void read_data_file (PkTask *task)
 {
     GtkTreeIter entry, cat_entry;
     GdkPixbuf *icon;
+    GtkIconInfo *iinfo;
     GKeyFile *kf;
     gchar **groups, **pnames;
     gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch;
@@ -428,8 +429,21 @@ static void read_data_file (PkTask *task)
             }
 
             // create the entry for the packages list
-            icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
-            if (!icon) icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, 0, NULL);
+            iinfo = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), iname, 32, GTK_ICON_LOOKUP_FORCE_SIZE);
+            if (iinfo)
+            {
+                icon = gtk_icon_info_load_icon (iinfo, NULL);
+                g_object_unref (iinfo);
+            }
+            if (!icon)
+            {
+                iinfo = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, GTK_ICON_LOOKUP_FORCE_SIZE);
+                if (iinfo)
+                {
+                    icon = gtk_icon_info_load_icon (iinfo, NULL);
+                    g_object_unref (iinfo);
+                }
+            }
             gtk_list_store_append (packages, &entry);
             buf = g_strdup_printf (_("<b>%s</b>\n%s"), name, desc);
             gtk_list_store_set (packages, &entry,
@@ -486,6 +500,7 @@ static void reload_data_file (PkTask *task)
 {
     GtkTreeIter entry, cat_entry;
     GdkPixbuf *icon;
+    GtkIconInfo *iinfo;
     GKeyFile *kf;
     gchar **groups, **pnames;
     gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch;
@@ -557,8 +572,21 @@ static void reload_data_file (PkTask *task)
             }
 
             // create the entry for the packages list
-            icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), iname, 32, 0, NULL);
-            if (!icon) icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, 0, NULL);
+            iinfo = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), iname, 32, GTK_ICON_LOOKUP_FORCE_SIZE);
+            if (iinfo)
+            {
+                icon = gtk_icon_info_load_icon (iinfo, NULL);
+                g_object_unref (iinfo);
+            }
+            if (!icon)
+            {
+                iinfo = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, GTK_ICON_LOOKUP_FORCE_SIZE);
+                if (iinfo)
+                {
+                    icon = gtk_icon_info_load_icon (iinfo, NULL);
+                    g_object_unref (iinfo);
+                }
+            }
             gtk_list_store_append (packages, &entry);
             buf = g_strdup_printf (_("<b>%s</b>\n%s"), name, desc);
             gtk_list_store_set (packages, &entry,
@@ -1508,9 +1536,9 @@ int main (int argc, char *argv[])
 
 #ifdef ENABLE_NLS
     setlocale (LC_ALL, "");
-    bindtextdomain ( GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR );
-    bind_textdomain_codeset ( GETTEXT_PACKAGE, "UTF-8" );
-    textdomain ( GETTEXT_PACKAGE );
+    bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
+    bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+    textdomain (GETTEXT_PACKAGE);
 #endif
 
     if (system ("raspi-config nonint is_pi")) is_pi = FALSE;
