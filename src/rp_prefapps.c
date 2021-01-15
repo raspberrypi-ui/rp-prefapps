@@ -1299,8 +1299,6 @@ static void error_box (char *msg, gboolean terminal)
     if (!err_dlg)
     {
         GtkBuilder *builder;
-        GtkWidget *wid;
-        GdkColor col;
 
         builder = gtk_builder_new ();
         gtk_builder_add_from_file (builder, PACKAGE_DATA_DIR "/rp_prefapps.ui", NULL);
@@ -1311,14 +1309,6 @@ static void error_box (char *msg, gboolean terminal)
         gtk_window_set_position (GTK_WINDOW (err_dlg), GTK_WIN_POS_CENTER_ON_PARENT);
         gtk_window_set_destroy_with_parent (GTK_WINDOW (err_dlg), TRUE);
         gtk_window_set_default_size (GTK_WINDOW (err_dlg), 400, 200);
-
-        gdk_color_parse ("#FFFFFF", &col);
-        wid = (GtkWidget *) gtk_builder_get_object (builder, "err_eb");
-        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
-        wid = (GtkWidget *) gtk_builder_get_object (builder, "err_sw");
-        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
-        wid = (GtkWidget *) gtk_builder_get_object (builder, "err_vp");
-        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
 
         err_msg = (GtkWidget *) gtk_builder_get_object (builder, "err_lbl");
         err_btn = (GtkWidget *) gtk_builder_get_object (builder, "err_btn");
@@ -1350,8 +1340,6 @@ static void message (char *msg, int wait, int prog)
     if (!msg_dlg)
     {
         GtkBuilder *builder;
-        GtkWidget *wid;
-        GdkColor col;
 
         builder = gtk_builder_new ();
         gtk_builder_add_from_file (builder, PACKAGE_DATA_DIR "/rp_prefapps.ui", NULL);
@@ -1362,10 +1350,6 @@ static void message (char *msg, int wait, int prog)
         gtk_window_set_position (GTK_WINDOW (msg_dlg), GTK_WIN_POS_CENTER_ON_PARENT);
         gtk_window_set_destroy_with_parent (GTK_WINDOW (msg_dlg), TRUE);
         gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 340, 100);
-
-        wid = (GtkWidget *) gtk_builder_get_object (builder, "msg_eb");
-        gdk_color_parse ("#FFFFFF", &col);
-        gtk_widget_modify_bg (wid, GTK_STATE_NORMAL, &col);
 
         msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "msg_lbl");
         msg_pb = (GtkWidget *) gtk_builder_get_object (builder, "msg_pb");
@@ -1535,8 +1519,6 @@ int main (int argc, char *argv[])
     needs_reboot = FALSE;
 
     // GTK setup
-    gdk_threads_init ();
-    gdk_threads_enter ();
     gtk_init (&argc, &argv);
     gtk_icon_theme_prepend_search_path (gtk_icon_theme_get_default(), PACKAGE_DATA_DIR);
 
@@ -1615,7 +1597,6 @@ int main (int argc, char *argv[])
 
     g_object_unref (builder);
     gtk_widget_destroy (main_dlg);
-    gdk_threads_leave ();
     return 0;
 }
 
