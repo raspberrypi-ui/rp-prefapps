@@ -90,7 +90,7 @@ guint n_inst, n_uninst;
 gchar **pinst, **puninst;
 
 char *lang, *lang_loc;
-gboolean needs_reboot, no_update = FALSE, is_pi = TRUE;
+gboolean needs_reboot, first_read, no_update = FALSE, is_pi = TRUE;
 int calls;
 gchar *sel_cat;
 
@@ -107,7 +107,6 @@ static gboolean filter_fn (PkPackage *package, gpointer user_data);
 static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void update_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void read_data_file (PkTask *task);
-static void reload_data_file (PkTask *task);
 static gboolean match_pid (char *name, const char *pid);
 static gboolean match_arch (char *arch);
 static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data);
@@ -348,10 +347,13 @@ static void read_data_file (PkTask *task)
         g_key_file_load_from_file (kf, PACKAGE_DATA_DIR "/prefapps.conf", G_KEY_FILE_NONE, NULL))
     {
         g_free (buf);
-        gtk_list_store_append (GTK_LIST_STORE (categories), &cat_entry);
-        icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "rpi", 32, 0, NULL);
-        gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, "All Programs", CAT_DISP_NAME, _("All Programs"), -1);
-        if (icon) g_object_unref (icon);
+        if (first_read)
+        {
+            gtk_list_store_append (GTK_LIST_STORE (categories), &cat_entry);
+            icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "rpi", 32, 0, NULL);
+            gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, "All Programs", CAT_DISP_NAME, _("All Programs"), -1);
+            if (icon) g_object_unref (icon);
+        }
         groups = g_key_file_get_groups (kf, NULL);
 
         while (groups[gcount])
@@ -406,169 +408,29 @@ static void read_data_file (PkTask *task)
             }
 
             // add unique entries to category list
-            new = TRUE;
-            gtk_tree_model_get_iter_first (GTK_TREE_MODEL (categories), &cat_entry);
-            while (gtk_tree_model_iter_next (GTK_TREE_MODEL (categories), &cat_entry))
+            if (first_read)
             {
-                gtk_tree_model_get (GTK_TREE_MODEL (categories), &cat_entry, CAT_NAME, &buf, -1);
-                if (!g_strcmp0 (cat, buf))
+                new = TRUE;
+                gtk_tree_model_get_iter_first (GTK_TREE_MODEL (categories), &cat_entry);
+                while (gtk_tree_model_iter_next (GTK_TREE_MODEL (categories), &cat_entry))
                 {
-                    new = FALSE;
+                    gtk_tree_model_get (GTK_TREE_MODEL (categories), &cat_entry, CAT_NAME, &buf, -1);
+                    if (!g_strcmp0 (cat, buf))
+                    {
+                        new = FALSE;
+                        g_free (buf);
+                        break;
+                    }
                     g_free (buf);
-                    break;
                 }
-                g_free (buf);
-            } 
 
-            if (new)
-            {
-                icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), cat_icon_name (cat), 32, 0, NULL);
-                gtk_list_store_append (categories, &cat_entry);
-                gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, cat, CAT_DISP_NAME, _(cat), -1);
-                if (icon) g_object_unref (icon);
-            }
-
-            // create the entry for the packages list
-            iinfo = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), iname, 32, GTK_ICON_LOOKUP_FORCE_SIZE);
-            if (iinfo)
-            {
-                icon = gtk_icon_info_load_icon (iinfo, NULL);
-                g_object_unref (iinfo);
-            }
-            if (!icon)
-            {
-                iinfo = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, GTK_ICON_LOOKUP_FORCE_SIZE);
-                if (iinfo)
+                if (new)
                 {
-                    icon = gtk_icon_info_load_icon (iinfo, NULL);
-                    g_object_unref (iinfo);
+                    icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), cat_icon_name (cat), 32, 0, NULL);
+                    gtk_list_store_append (categories, &cat_entry);
+                    gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, cat, CAT_DISP_NAME, _(cat), -1);
+                    if (icon) g_object_unref (icon);
                 }
-            }
-            gtk_list_store_append (packages, &entry);
-            buf = g_strdup_printf (_("<b>%s</b>\n%s"), name, desc);
-            gtk_list_store_set (packages, &entry,
-                PACK_ICON, icon,
-                PACK_CELL_TEXT, buf,
-                PACK_INSTALLED, FALSE,
-                PACK_INIT_INST, FALSE,
-                PACK_CATEGORY, cat,
-                PACK_PACKAGE_NAME, pack,
-                PACK_PACKAGE_ID, "none",
-                PACK_RPACKAGE_NAME, rpack,
-                PACK_RPACKAGE_ID, "none",
-                PACK_CELL_NAME, name,
-                PACK_CELL_DESC, desc,
-                PACK_ADD_NAMES, adds,
-                PACK_ADD_IDS, "none",
-                PACK_REBOOT, reboot,
-                PACK_ARCH, arch ? arch : "any",
-                PACK_RPDESC, rpdesc,
-                -1);
-            if (icon) g_object_unref (icon);
-
-            g_free (buf);
-            g_free (cat);
-            g_free (name);
-            g_free (desc);
-            g_free (iname);
-            g_free (pack);
-            g_free (rpack);
-            g_free (adds);
-            g_free (arch);
-
-            gcount++;
-        }
-        g_free (groups);
-    }
-    else
-    {
-        // handle no data file here...
-        g_free (buf);
-        g_free (pnames);
-        error_box (_("Unable to open package data file"), TRUE);
-        return;
-    }
-
-    message (_("Finding packages - please wait..."), 0 , -1);
-
-    pk_client_resolve_async (PK_CLIENT (task), 0, pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_2_done, NULL);
-    g_free (pnames);
-}
-
-
-static void reload_data_file (PkTask *task)
-{
-    GtkTreeIter entry, cat_entry;
-    GdkPixbuf *icon;
-    GtkIconInfo *iinfo;
-    GKeyFile *kf;
-    gchar **groups, **pnames;
-    gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch;
-    gboolean new, reboot, rpdesc;
-    int pcount = 0, gcount = 0;
-
-    loc = setlocale (0, "");
-    strtok (loc, "_. ");
-    buf = g_strdup_printf ("%s/prefapps_%s.conf", PACKAGE_DATA_DIR, loc);
-
-    pnames = malloc (sizeof (gchar *));
-
-    kf = g_key_file_new ();
-    if (g_key_file_load_from_file (kf, buf, G_KEY_FILE_NONE, NULL) ||
-        g_key_file_load_from_file (kf, PACKAGE_DATA_DIR "/prefapps.conf", G_KEY_FILE_NONE, NULL))
-    {
-        g_free (buf);
-        groups = g_key_file_get_groups (kf, NULL);
-
-        while (groups[gcount])
-        {
-            cat = g_key_file_get_value (kf, groups[gcount], "category", NULL);
-            name = g_key_file_get_value (kf, groups[gcount], "name", NULL);
-            desc = g_key_file_get_value (kf, groups[gcount], "description", NULL);
-            iname = g_key_file_get_value (kf, groups[gcount], "icon", NULL);
-            pack = g_key_file_get_value (kf, groups[gcount], "package", NULL);
-            rpack = g_key_file_get_value (kf, groups[gcount], "rpackage", NULL);
-            adds = g_key_file_get_value (kf, groups[gcount], "additional", NULL);
-            reboot = g_key_file_get_boolean (kf, groups[gcount], "reboot", NULL);
-            arch = g_key_file_get_value (kf, groups[gcount], "arch", NULL);
-            rpdesc = g_key_file_get_boolean (kf, groups[gcount], "rpdesc", NULL);
-
-            // create array of package names
-            pnames = realloc (pnames, (pcount + 1 + (rpack ? 2 : 1)) * sizeof (gchar *));
-            pnames[pcount++] = g_strdup (pack);
-            if (rpack) pnames[pcount++] = g_strdup (rpack);
-            pnames[pcount] = NULL;
-
-            // add additional packages to array of names
-            if (adds && *adds)
-            {
-                // additional packages separated by commas
-                addspl = g_strdup (adds);
-                add = strtok (addspl, ",");
-                while (add)
-                {
-                    if (strchr (add, '%'))
-                    {
-                        // substitute %s with locale strings
-                        if (*lang)
-                        {
-                            pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
-                            pnames[pcount++] = g_strdup_printf (add, lang);
-                        }
-                        if (*lang_loc)
-                        {
-                            pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
-                            pnames[pcount++] = g_strdup_printf (add, lang_loc);
-                        }
-                    }
-                    else
-                    {
-                        pnames = realloc (pnames, (pcount + 2) * sizeof (gchar *));
-                        pnames[pcount++] = g_strdup (add);
-                    }
-                    add = strtok (NULL, ",");
-                }
-                g_free (addspl);
             }
 
             // create the entry for the packages list
@@ -1292,7 +1154,8 @@ static gboolean reload (GtkButton *button, gpointer data)
     gtk_list_store_clear (packages);
     gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv))));
     task = pk_task_new ();
-    reload_data_file (task);
+    first_read = FALSE;
+    read_data_file (task);
     return FALSE;
 }
 
@@ -1606,6 +1469,7 @@ int main (int argc, char *argv[])
 
     // update application, load the data file and check with backend
     if (argc > 1 && !g_strcmp0 (argv[1], "noupdate")) no_update = TRUE;
+    first_read = TRUE;
 
     if (net_available ())
     {
