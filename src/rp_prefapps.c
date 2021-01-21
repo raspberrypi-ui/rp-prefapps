@@ -1191,14 +1191,10 @@ static void error_box (char *msg, gboolean terminal)
     {
         GtkBuilder *builder;
 
-        builder = gtk_builder_new ();
-        gtk_builder_add_from_file (builder, PACKAGE_DATA_DIR "/rp_prefapps.ui", NULL);
+        builder = gtk_builder_new_from_file (PACKAGE_DATA_DIR "/rp_prefapps.ui");
 
         err_dlg = (GtkWidget *) gtk_builder_get_object (builder, "error");
-        gtk_window_set_modal (GTK_WINDOW (err_dlg), TRUE);
         gtk_window_set_transient_for (GTK_WINDOW (err_dlg), GTK_WINDOW (main_dlg));
-        gtk_window_set_position (GTK_WINDOW (err_dlg), GTK_WIN_POS_CENTER_ON_PARENT);
-        gtk_window_set_destroy_with_parent (GTK_WINDOW (err_dlg), TRUE);
         gtk_window_set_default_size (GTK_WINDOW (err_dlg), 400, 200);
 
         err_msg = (GtkWidget *) gtk_builder_get_object (builder, "err_lbl");
@@ -1232,14 +1228,10 @@ static void message (char *msg, int wait, int prog)
     {
         GtkBuilder *builder;
 
-        builder = gtk_builder_new ();
-        gtk_builder_add_from_file (builder, PACKAGE_DATA_DIR "/rp_prefapps.ui", NULL);
+        builder = gtk_builder_new_from_file (PACKAGE_DATA_DIR "/rp_prefapps.ui");
 
         msg_dlg = (GtkWidget *) gtk_builder_get_object (builder, "msg");
-        gtk_window_set_modal (GTK_WINDOW (msg_dlg), TRUE);
         gtk_window_set_transient_for (GTK_WINDOW (msg_dlg), GTK_WINDOW (main_dlg));
-        gtk_window_set_position (GTK_WINDOW (msg_dlg), GTK_WIN_POS_CENTER_ON_PARENT);
-        gtk_window_set_destroy_with_parent (GTK_WINDOW (msg_dlg), TRUE);
         gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 340, 100);
 
         msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "msg_lbl");
@@ -1414,8 +1406,7 @@ int main (int argc, char *argv[])
     gtk_icon_theme_prepend_search_path (gtk_icon_theme_get_default(), PACKAGE_DATA_DIR);
 
     // build the UI
-    builder = gtk_builder_new ();
-    gtk_builder_add_from_file (builder, PACKAGE_DATA_DIR "/rp_prefapps.ui", NULL);
+    builder = gtk_builder_new_from_file (PACKAGE_DATA_DIR "/rp_prefapps.ui");
 
     main_dlg = (GtkWidget *) gtk_builder_get_object (builder, "main_window");
     cat_tv = (GtkWidget *) gtk_builder_get_object (builder, "treeview_cat");
