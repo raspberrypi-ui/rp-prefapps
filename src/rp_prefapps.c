@@ -1195,7 +1195,6 @@ static void error_box (char *msg, gboolean terminal)
 
         err_dlg = (GtkWidget *) gtk_builder_get_object (builder, "error");
         gtk_window_set_transient_for (GTK_WINDOW (err_dlg), GTK_WINDOW (main_dlg));
-        gtk_window_set_default_size (GTK_WINDOW (err_dlg), 400, 200);
 
         err_msg = (GtkWidget *) gtk_builder_get_object (builder, "err_lbl");
         err_btn = (GtkWidget *) gtk_builder_get_object (builder, "err_btn");
@@ -1230,18 +1229,16 @@ static void message (char *msg, int wait, int prog)
 
         builder = gtk_builder_new_from_file (PACKAGE_DATA_DIR "/rp_prefapps.ui");
 
-        msg_dlg = (GtkWidget *) gtk_builder_get_object (builder, "msg");
+        msg_dlg = (GtkWidget *) gtk_builder_get_object (builder, "modal");
         gtk_window_set_transient_for (GTK_WINDOW (msg_dlg), GTK_WINDOW (main_dlg));
-        gtk_window_set_default_size (GTK_WINDOW (msg_dlg), 340, 100);
 
-        msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "msg_lbl");
-        msg_pb = (GtkWidget *) gtk_builder_get_object (builder, "msg_pb");
-        msg_btn = (GtkWidget *) gtk_builder_get_object (builder, "msg_btn");
-        msg_cancel = (GtkWidget *) gtk_builder_get_object (builder, "msg_cancel");
+        msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "modal_msg");
+        msg_pb = (GtkWidget *) gtk_builder_get_object (builder, "modal_pb");
+        msg_btn = (GtkWidget *) gtk_builder_get_object (builder, "modal_ok");
+        msg_cancel = (GtkWidget *) gtk_builder_get_object (builder, "modal_cancel");
 
         gtk_label_set_text (GTK_LABEL (msg_msg), msg);
 
-        gtk_widget_show_all (msg_dlg);
         g_object_unref (builder);
     }
     else gtk_label_set_text (GTK_LABEL (msg_msg), msg);
@@ -1252,13 +1249,13 @@ static void message (char *msg, int wait, int prog)
         if (wait > 1)
         {
             gtk_button_set_label (GTK_BUTTON (msg_btn), "_Yes");
+            gtk_button_set_label (GTK_BUTTON (msg_cancel), "_No");
             g_signal_connect (msg_btn, "clicked", G_CALLBACK (quit), (void *) 1);
             g_signal_connect (msg_cancel, "clicked", G_CALLBACK (quit), (void *) 0);
             gtk_widget_set_visible (msg_cancel, TRUE);
         }
         else
         {
-            gtk_button_set_label (GTK_BUTTON (msg_btn), "_OK");
             g_signal_connect (msg_btn, "clicked", G_CALLBACK (reload), NULL);
             gtk_widget_set_visible (msg_cancel, FALSE);
         }
@@ -1276,7 +1273,9 @@ static void message (char *msg, int wait, int prog)
             gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (msg_pb), progress);
         }
     }
+    gtk_widget_show (msg_dlg);
 }
+
 
 /*----------------------------------------------------------------------------*/
 /* Handlers for main window user interaction                                  */
