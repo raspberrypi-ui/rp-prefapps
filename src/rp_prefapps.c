@@ -1245,27 +1245,27 @@ static void message (char *msg, int wait, int prog)
 
     if (wait)
     {
-        gtk_widget_set_visible (msg_pb, FALSE);
+        gtk_widget_hide (msg_pb);
         if (wait > 1)
         {
             gtk_button_set_label (GTK_BUTTON (msg_btn), "_Yes");
             gtk_button_set_label (GTK_BUTTON (msg_cancel), "_No");
             g_signal_connect (msg_btn, "clicked", G_CALLBACK (quit), (void *) 1);
             g_signal_connect (msg_cancel, "clicked", G_CALLBACK (quit), (void *) 0);
-            gtk_widget_set_visible (msg_cancel, TRUE);
+            gtk_widget_show (msg_cancel);
         }
         else
         {
             g_signal_connect (msg_btn, "clicked", G_CALLBACK (reload), NULL);
-            gtk_widget_set_visible (msg_cancel, FALSE);
+            gtk_widget_hide (msg_cancel);
         }
-        gtk_widget_set_visible (msg_btn, TRUE);
+        gtk_widget_show (msg_btn);
     }
     else
     {
-        gtk_widget_set_visible (msg_cancel, FALSE);
-        gtk_widget_set_visible (msg_btn, FALSE);
-        gtk_widget_set_visible (msg_pb, TRUE);
+        gtk_widget_hide (msg_cancel);
+        gtk_widget_hide (msg_btn);
+        gtk_widget_show (msg_pb);
         if (prog == -1) gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
         else
         {
