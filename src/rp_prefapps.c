@@ -1201,7 +1201,6 @@ static void error_box (char *msg, gboolean terminal)
 
         gtk_label_set_text (GTK_LABEL (err_msg), msg);
 
-        gtk_button_set_label (GTK_BUTTON (err_btn), "_OK");
         if (terminal)
             g_signal_connect (err_btn, "clicked", G_CALLBACK (quit), (void *) 0);
         else
