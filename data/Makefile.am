@@ -19,7 +19,8 @@ ui_in_files = 	rp_prefapps.ui \
 				thonny.png \
 				vncviewer48x48.png \
 				wolfram-mathematica.png \
-				mage.png
+				mage.png \
+				com.visualstudio.code.png
 	
 ui_DATA = $(ui_in_files)
 
