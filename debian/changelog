@@ -1,3 +1,9 @@
+rp-prefapps (0.32) buster; urgency=medium
+
+  * Correct build dependency for GTK+3
+
+ -- Simon Long <simon@raspberrypi.com>  Fri, 19 Feb 2021 17:54:39 +0000
+
 rp-prefapps (0.31) buster; urgency=medium
 
   * GTK+3 version
