@@ -98,6 +98,7 @@ gchar *sel_cat;
 /* Prototypes                                                                 */
 /*----------------------------------------------------------------------------*/
 
+static char *get_string (char *cmd);
 static char *name_from_id (const gchar *id);
 static void progress (PkProgress *progress, PkProgressType *type, gpointer data);
 static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gboolean silent, gboolean terminal);
@@ -131,6 +132,33 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
 static void close_handler (GtkButton* btn, gpointer ptr);
 static gboolean search_update (GtkEditable *editable, gpointer userdata);
 static void get_locales (void);
+
+
+/*----------------------------------------------------------------------------*/
+/* Generic helper functions                                                   */
+/*----------------------------------------------------------------------------*/
+
+static char *get_string (char *cmd)
+{
+    char *line = NULL, *res = NULL;
+    size_t len = 0;
+    FILE *fp = popen (cmd, "r");
+
+    if (fp == NULL) return NULL;
+    if (getline (&line, &len, fp) > 0)
+    {
+        res = line;
+        while (*res)
+        {
+            if (g_ascii_isspace (*res)) *res = 0;
+            res++;
+        }
+        res = g_strdup (line);
+    }
+    pclose (fp);
+    g_free (line);
+    return res;
+}
 
 /*----------------------------------------------------------------------------*/
 /* Helper functions for async operations                                      */
@@ -280,7 +308,16 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
 
 static gboolean filter_fn (PkPackage *package, gpointer user_data)
 {
-    if (is_pi) return TRUE;
+    const char *sysarch = (char *) user_data;
+    const char *pkarch = pk_package_get_arch (package);
+
+    if (is_pi)
+    {
+        if (!g_strcmp0 (pkarch, "all")) return TRUE;
+        if (!g_strcmp0 (pkarch, "armhf")) return TRUE;
+        if (!g_strcmp0 (pkarch, sysarch)) return TRUE;   // catches arm64 case...
+        return FALSE;
+    }
     if (strstr (pk_package_get_arch (package), "amd64")) return FALSE;
     return TRUE;
 }
@@ -290,6 +327,7 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
     PkResults *results;
     PkPackageSack *sack, *fsack;
     gchar **ids;
+    gchar *arch;
 
     results = error_handler (task, res, _("finding packages"), TRUE, FALSE);
 
@@ -297,7 +335,9 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (results)
     {
         sack = pk_results_get_package_sack (results);
-        fsack = pk_package_sack_filter (sack, filter_fn, NULL);
+        arch = get_string ("dpkg-architecture -q DEB_BUILD_ARCH");
+        fsack = pk_package_sack_filter (sack, filter_fn, arch);
+        g_free (arch);
 
         ids = pk_package_sack_get_ids (fsack);
         if (*ids)
@@ -545,7 +585,9 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (!results) return;
 
     sack = pk_results_get_package_sack (results);
-    fsack = pk_package_sack_filter (sack, filter_fn, NULL);
+    arch = get_string ("dpkg-architecture -q DEB_BUILD_ARCH");
+    fsack = pk_package_sack_filter (sack, filter_fn, arch);
+    g_free (arch);
     array = pk_package_sack_get_array (fsack);
 
     // Need to loop through the array of returned IDs twice. On the first pass, only look at
@@ -617,7 +659,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
                         {
                             // DANGER, WILL ROBINSON - if additional packages ever come in multiple architectures, this will need to be fixed,
                             // by going through each string in the existing addids array and seeing if it matches the new string except for
-                            // the archicture, and replacing it with the new string if so; just appending it as now otherwise.
+                            // the architecture, and replacing it with the new string if so; just appending it as now otherwise.
                             // This will be incredibly tedious, so I'm not doing it until I need to...
                             addlist = g_strdup_printf ("%s,%s", addids, package_id);
                             gtk_list_store_set (packages, &iter, PACK_ADD_IDS, addlist, -1);

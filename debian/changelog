@@ -1,3 +1,11 @@
+rp-prefapps (0.31) buster; urgency=medium
+
+  * GTK+3 version
+  * Added MS Visual Studio Code
+  * Adjust filtering for armhf and arm64 packages
+
+ -- Simon Long <simon@raspberrypi.com>  Fri, 19 Feb 2021 10:16:42 +0000
+
 rp-prefapps (0.30) buster; urgency=medium
 
   * Add Slovak translation
