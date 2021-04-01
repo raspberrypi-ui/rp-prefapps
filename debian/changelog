@@ -1,3 +1,9 @@
+rp-prefapps (0.33) buster; urgency=medium
+
+  * Remove hiding of app in other desktops
+
+ -- Simon Long <simon@raspberrypi.com>  Thu, 01 Apr 2021 20:43:15 +0100
+
 rp-prefapps (0.32) buster; urgency=medium
 
   * Correct build dependency for GTK+3
