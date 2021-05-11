@@ -1,4 +1,4 @@
-rp-prefapps (0.34) bullseye; urgency=medium
+rp-prefapps (0.34) buster; urgency=medium
 
   * Fix startup race condition with drawing of message box
 
