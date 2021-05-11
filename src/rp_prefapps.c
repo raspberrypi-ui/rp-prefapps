@@ -93,6 +93,7 @@ char *lang, *lang_loc;
 gboolean needs_reboot, first_read, no_update = FALSE, is_pi = TRUE;
 int calls;
 gchar *sel_cat;
+gulong draw_id;
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes                                                                 */
@@ -132,6 +133,7 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
 static void close_handler (GtkButton* btn, gpointer ptr);
 static gboolean search_update (GtkEditable *editable, gpointer userdata);
 static void get_locales (void);
+static gboolean first_draw (GtkWidget *instance);
 
 
 /*----------------------------------------------------------------------------*/
@@ -1420,6 +1422,28 @@ static void get_locales (void)
     }
 }
 
+/* There's a potential race condition with some WMs whereby trying to draw
+ * a modal dialog before the main dialog has realized, the modal dialog
+ * cannot centre on the main dialog - this function ensures that modals will
+ * not be drawn until the main dialog has realized. */
+
+static gboolean first_draw (GtkWidget *instance)
+{
+    if (net_available ())
+    {
+        if (clock_synced ()) g_idle_add (update_self, NULL);
+        else
+        {
+            message (_("Synchronising clock - please wait..."), 0, -1);
+            calls = 0;
+            g_timeout_add_seconds (1, ntp_check, NULL);
+        }
+    }
+    else error_box (_("No network connection - applications cannot be installed"), TRUE);
+    g_signal_handler_disconnect (instance, draw_id);
+    return FALSE;
+}
+
 /*----------------------------------------------------------------------------*/
 /* Main window                                                                */
 /*----------------------------------------------------------------------------*/
@@ -1502,19 +1526,8 @@ int main (int argc, char *argv[])
     if (argc > 1 && !g_strcmp0 (argv[1], "noupdate")) no_update = TRUE;
     first_read = TRUE;
 
-    if (net_available ())
-    {
-        if (clock_synced ()) g_idle_add (update_self, NULL);
-        else
-        {
-            message (_("Synchronising clock - please wait..."), 0, -1);
-            calls = 0;
-            g_timeout_add_seconds (1, ntp_check, NULL);
-        }
-    }
-    else error_box (_("No network connection - applications cannot be installed"), TRUE);
-
     sel_cat = g_strdup_printf ("0");
+    draw_id = g_signal_connect (main_dlg, "draw", G_CALLBACK (first_draw), NULL);
 
     gtk_main ();
 
