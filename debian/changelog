@@ -1,3 +1,9 @@
+rp-prefapps (0.35) bullseye; urgency=medium
+
+  * Remove Sonic Pi; update SenseHAT emulator to Python 3 version
+
+ -- Simon Long <simon@raspberrypi.com>  Mon, 14 Jun 2021 14:22:01 +0100
+
 rp-prefapps (0.34) buster; urgency=medium
 
   * Fix startup race condition with drawing of message box
