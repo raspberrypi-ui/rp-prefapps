@@ -9,7 +9,6 @@ ui_in_files = 	rp_prefapps.ui \
 				greenfoot.png \
 				libreoffice-main.png \
 				mage.png \
-				minecraft-pi.png \
 				mu.png \
 				node-red-icon.svg \
 				orca.png \
