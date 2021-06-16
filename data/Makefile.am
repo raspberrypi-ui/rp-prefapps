@@ -4,9 +4,11 @@ ui_in_files = 	rp_prefapps.ui \
 				prefapps.conf \
 				bluej.png \
 				claws-mail.png \
+				com.visualstudio.code.png \
 				ctc.png \
 				greenfoot.png \
 				libreoffice-main.png \
+				mage.png \
 				minecraft-pi.png \
 				mu.png \
 				node-red-icon.svg \
@@ -15,12 +17,9 @@ ui_in_files = 	rp_prefapps.ui \
 				scratch3.png \
 				sense_emu_gui.png \
 				smartsim.png \
-				sonic-pi.png \
 				thonny.png \
 				vncviewer48x48.png \
-				wolfram-mathematica.png \
-				mage.png \
-				com.visualstudio.code.png
+				wolfram-mathematica.png
 	
 ui_DATA = $(ui_in_files)
 
