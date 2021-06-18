@@ -1,3 +1,9 @@
+rp-prefapps (0.37) bullseye; urgency=medium
+
+  * Add Raspberry Pi Wallpaper 4K
+
+ -- Simon Long <simon@raspberrypi.com>  Fri, 18 Jun 2021 11:18:16 +0100
+
 rp-prefapps (0.36) bullseye; urgency=medium
 
   * Remove Minecraft and Python Games
