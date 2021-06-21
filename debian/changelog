@@ -1,3 +1,9 @@
+rp-prefapps (0.38) bullseye; urgency=medium
+
+  * Reinstate Sonic Pi
+
+ -- Simon Long <simon@raspberrypi.com>  Mon, 21 Jun 2021 09:39:57 +0100
+
 rp-prefapps (0.37) bullseye; urgency=medium
 
   * Add Raspberry Pi Wallpaper 4K
