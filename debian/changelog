@@ -1,3 +1,9 @@
+rp-prefapps (0.39) bullseye; urgency=medium
+
+  * Remove dialog hint
+
+ -- Simon Long <simon@raspberrypi.com>  Mon, 12 Jul 2021 13:32:25 +0100
+
 rp-prefapps (0.38) bullseye; urgency=medium
 
   * Reinstate Sonic Pi

@@ -90,7 +90,6 @@
     <property name="default_width">400</property>
     <property name="default_height">200</property>
     <property name="icon_name">rpi</property>
-    <property name="type_hint">dialog</property>
     <child>
       <placeholder/>
     </child>
