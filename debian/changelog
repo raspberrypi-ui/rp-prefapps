@@ -1,3 +1,9 @@
+rp-prefapps (0.40) bullseye; urgency=medium
+
+  * Check reboot flag set by install process
+
+ -- Simon Long <simon@raspberrypi.com>  Sun, 12 Sep 2021 14:03:20 +0100
+
 rp-prefapps (0.39) bullseye; urgency=medium
 
   * Remove dialog hint
