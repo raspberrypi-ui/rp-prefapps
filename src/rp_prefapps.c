@@ -942,6 +942,9 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     if (!error_handler (task, res, _("installing packages"), FALSE, FALSE)) return;
 
+    // check reboot flag set by install process
+    if (!access ("/run/reboot-required", F_OK)) needs_reboot = TRUE;
+
     if (n_uninst)
     {
         message (_("Removing packages - please wait..."), 0 , -1);
@@ -955,6 +958,9 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     if (!error_handler (task, res, _("removing packages"), FALSE, FALSE)) return;
+
+    // check reboot flag set by install process
+    if (!access ("/run/reboot-required", F_OK)) needs_reboot = TRUE;
 
     if (n_inst)
         message (_("Installation and removal complete"), 1, -1);
