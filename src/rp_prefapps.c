@@ -1511,7 +1511,7 @@ int main (int argc, char *argv[])
     gtk_tree_view_column_set_sizing (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 0), GTK_TREE_VIEW_COLUMN_FIXED);
     gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 0), 45);
     gtk_tree_view_column_set_expand (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 1), TRUE);
-    g_object_set (crt, "wrap-mode", PANGO_WRAP_WORD, "wrap-width", 320, NULL);
+    g_object_set (crt, "wrap-mode", PANGO_WRAP_WORD, "wrap-width", 355, NULL);
     gtk_tree_view_column_set_sizing (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), GTK_TREE_VIEW_COLUMN_FIXED);
     gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), 50);
 
