@@ -77,7 +77,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 /* Controls */
 
 static GtkWidget *main_dlg, *cat_tv, *pack_tv, *close_btn, *apply_btn, *search_te;
-static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn, *msg_cancel, *msg_pbv;
+static GtkWidget *msg_dlg, *msg_msg, *msg_pb, *msg_btn, *msg_cancel;
 static GtkWidget *err_dlg, *err_msg, *err_btn;
 
 /* Data stores for tree views */
@@ -131,7 +131,7 @@ static gboolean packs_in_cat (GtkTreeModel *model, GtkTreeIter *iter, gpointer d
 static void category_selected (GtkTreeView *tv, gpointer ptr);
 static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer user_data);
 static void close_handler (GtkButton* btn, gpointer ptr);
-static gboolean search_update (GtkEditable *editable, gpointer userdata);
+static void search_update (GtkEditable *editable, gpointer userdata);
 static void get_locales (void);
 static gboolean first_draw (GtkWidget *instance);
 
@@ -370,7 +370,7 @@ static void update_done (PkTask *task, GAsyncResult *res, gpointer data)
 static void read_data_file (PkTask *task)
 {
     GtkTreeIter entry, cat_entry;
-    GdkPixbuf *icon;
+    GdkPixbuf *icon = NULL;
     GtkIconInfo *iinfo;
     GKeyFile *kf;
     gchar **groups, **pnames;
@@ -1392,7 +1392,7 @@ static void close_handler (GtkButton* btn, gpointer ptr)
         gtk_main_quit ();
 }
 
-static gboolean search_update (GtkEditable *editable, gpointer userdata)
+static void search_update (GtkEditable *editable, gpointer userdata)
 {
     gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv))));
 }
