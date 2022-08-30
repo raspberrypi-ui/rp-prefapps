@@ -1,3 +1,9 @@
+rp-prefapps (0.42) bullseye; urgency=medium
+
+  * Use bluej-unbundled instead of bluej
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 30 Aug 2022 08:27:13 +0100
+
 rp-prefapps (0.41) bullseye; urgency=medium
 
   * Fix size of modal dialog
