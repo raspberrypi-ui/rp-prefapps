@@ -10,7 +10,6 @@ ui_in_files = 	rp_prefapps.ui \
 				libreoffice-main.png \
 				mage.png \
 				mu.png \
-				node-red-icon.svg \
 				orca.png \
 				scratch.png \
 				scratch3.png \
