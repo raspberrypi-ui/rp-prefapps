@@ -1,3 +1,9 @@
+rp-prefapps (0.43) bullseye; urgency=medium
+
+  * Remove NodeRED
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 13 Sep 2022 07:16:15 +0100
+
 rp-prefapps (0.42) bullseye; urgency=medium
 
   * Use bluej-unbundled instead of bluej
