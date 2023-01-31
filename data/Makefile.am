@@ -7,6 +7,7 @@ ui_in_files = 	rp_prefapps.ui \
 				com.visualstudio.code.png \
 				ctc.png \
 				greenfoot.png \
+				kicad.png \
 				libreoffice-main.png \
 				mage.png \
 				mu.png \

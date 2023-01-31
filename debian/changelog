@@ -1,8 +1,14 @@
-rp-prefapps (0.44) bullseye; urgency=medium
+rp-prefapps (0.45) bullseye; urgency=medium
 
   * Set undecorated dialogs in code
 
  -- Simon Long <simon@raspberrypi.com>  Tue, 31 Jan 2023 09:15:46 +0000
+
+rp-prefapps (0.44) bullseye; urgency=medium
+
+  * Added KiCad
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 15 Nov 2022 12:59:18 +0000
 
 rp-prefapps (0.43) bullseye; urgency=medium
 
