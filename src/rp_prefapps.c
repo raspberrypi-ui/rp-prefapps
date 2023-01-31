@@ -1257,6 +1257,7 @@ static void error_box (char *msg, gboolean terminal)
             g_signal_connect (err_btn, "clicked", G_CALLBACK (reload), NULL);
 
         gtk_widget_show_all (err_dlg);
+        gtk_window_set_decorated (GTK_WINDOW (err_dlg), FALSE);
         g_object_unref (builder);
     }
     else gtk_label_set_text (GTK_LABEL (err_msg), msg);
@@ -1323,6 +1324,7 @@ static void message (char *msg, int wait, int prog)
         }
     }
     gtk_widget_show (msg_dlg);
+    gtk_window_set_decorated (GTK_WINDOW (msg_dlg), FALSE);
 }
 
 

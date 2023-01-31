@@ -1,3 +1,9 @@
+rp-prefapps (0.44) bullseye; urgency=medium
+
+  * Set undecorated dialogs in code
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 31 Jan 2023 09:15:46 +0000
+
 rp-prefapps (0.43) bullseye; urgency=medium
 
   * Remove NodeRED
