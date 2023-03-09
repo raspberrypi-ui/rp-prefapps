@@ -1,3 +1,9 @@
+rp-prefapps (0.46) bullseye; urgency=medium
+
+  * Add 64-bit Mathematica
+
+ -- Simon Long <simon@raspberrypi.com>  Thu, 09 Mar 2023 15:18:40 +0000
+
 rp-prefapps (0.45) bullseye; urgency=medium
 
   * Set undecorated dialogs in code
