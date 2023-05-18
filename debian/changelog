@@ -1,3 +1,9 @@
+rp-prefapps (0.47) bullseye; urgency=medium
+
+  * Add Korean translations
+
+ -- Simon Long <simon@raspberrypi.com>  Thu, 18 May 2023 14:15:14 +0100
+
 rp-prefapps (0.46) bullseye; urgency=medium
 
   * Add 64-bit Mathematica
