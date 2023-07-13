@@ -4,6 +4,6 @@ _Name=Recommended Software
 _GenericName=Recommended Software
 _Comment=Install additional programs recommended for use on the Pi
 Icon=rpi
-Exec=env SUDO_ASKPASS=/usr/lib/rp-prefapps/pwdrpp.sh sudo -AE rp-prefapps
+Exec=env SUDO_ASKPASS=/usr/lib/rp-prefapps/pwdrpp.sh sudo rp-prefapps
 StartupNotify=true
 Categories=Settings;DesktopSettings;GTK;X-LXDE-Settings;
