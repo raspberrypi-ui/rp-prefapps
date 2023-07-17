@@ -106,7 +106,7 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gb
 static gboolean update_self (gpointer data);
 static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
 static gboolean filter_fn (PkPackage *package, gpointer user_data);
-static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data);
+static void get_updates_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void update_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void read_data_file (PkTask *task);
 static gboolean match_pid (char *name, const char *pid);
@@ -299,13 +299,11 @@ static gboolean update_self (gpointer data)
 
 static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
-    gchar *pkg[2] = { "rp-prefapps", NULL };
-
     if (!error_handler (task, res, _("updating package data"), FALSE, TRUE)) return;
 
     message (_("Finding packages - please wait..."), 0 , -1);
 
-    pk_client_resolve_async (PK_CLIENT (task), 0, pkg, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_1_done, NULL);
+    pk_client_get_updates_async (PK_CLIENT (task), 0, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) get_updates_done, NULL);
 }
 
 static gboolean filter_fn (PkPackage *package, gpointer user_data)
@@ -324,12 +322,13 @@ static gboolean filter_fn (PkPackage *package, gpointer user_data)
     return TRUE;
 }
 
-static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
+static void get_updates_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
     PkPackageSack *sack, *fsack;
     gchar **ids;
     gchar *arch;
+    gchar *todo[2] = {NULL, NULL};
 
     results = error_handler (task, res, _("finding packages"), TRUE, FALSE);
 
@@ -342,11 +341,20 @@ static void resolve_1_done (PkTask *task, GAsyncResult *res, gpointer data)
         g_free (arch);
 
         ids = pk_package_sack_get_ids (fsack);
-        if (*ids)
+        int id = 0;
+        while (ids[id])
+        {
+            if (!strncmp (ids[id], "rp-prefapps;", 12))
+                todo[0] = g_strdup (ids[id]);
+            id++;
+        }
+        g_strfreev (ids);
+
+        if (todo[0])
         {
             message (_("Updating application - please wait..."), 0 , -1);
-            pk_task_update_packages_async (task, ids, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
-            g_strfreev (ids);
+            pk_task_update_packages_async (task, todo, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
+            g_free (todo[0]);
             g_object_unref (sack);
             g_object_unref (fsack);
         }
