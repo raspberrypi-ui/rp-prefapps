@@ -3,7 +3,7 @@ Section: admin
 Priority: optional
 Maintainer: Simon Long <simon@raspberrypi.org>
 Build-Depends: debhelper (>= 9), dh-autoreconf, libglib2.0-dev, libgtk-3-dev (>= 3.24),
- libx11-dev, intltool, libpackagekit-glib2-dev
+ libx11-dev, intltool, libpackagekit-glib2-dev, dh-exec
 Standards-Version: 3.9.6
 Homepage: https://github.com/raspberrypi-ui/rp_prefapps
 Vcs-Git: git://git@github.com:raspberrypi-ui/rp_prefapps.git
