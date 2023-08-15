@@ -1,3 +1,10 @@
+rp-prefapps (0.51) bookworm; urgency=medium
+
+  * Add Scratch for 64-bit
+  * Do not offer Magnifier under Wayland
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 15 Aug 2023 13:48:03 +0100
+
 rp-prefapps (0.50) bookworm; urgency=medium
 
   * Add PolKit rule to authorise clock resync

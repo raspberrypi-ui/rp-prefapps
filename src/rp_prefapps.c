@@ -94,6 +94,7 @@ gboolean needs_reboot, first_read, no_update = FALSE, is_pi = TRUE;
 int calls;
 gchar *sel_cat;
 gulong draw_id;
+gboolean wayfire = FALSE;
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes                                                                 */
@@ -383,7 +384,7 @@ static void read_data_file (PkTask *task)
     GKeyFile *kf;
     gchar **groups, **pnames;
     gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch;
-    gboolean new, reboot, rpdesc;
+    gboolean new, reboot, rpdesc, xonly;
     int pcount = 0, gcount = 0;
 
     loc = setlocale (0, "");
@@ -408,6 +409,14 @@ static void read_data_file (PkTask *task)
 
         while (groups[gcount])
         {
+            // skip X-only packages if running under wayfire
+            xonly = g_key_file_get_boolean (kf, groups[gcount], "xonly", NULL);
+            if (xonly && wayfire)
+            {
+                gcount++;
+                continue;
+            }
+
             cat = g_key_file_get_value (kf, groups[gcount], "category", NULL);
             name = g_key_file_get_value (kf, groups[gcount], "name", NULL);
             desc = g_key_file_get_value (kf, groups[gcount], "description", NULL);
@@ -1477,6 +1486,7 @@ int main (int argc, char *argv[])
 #endif
 
     if (system ("raspi-config nonint is_pi")) is_pi = FALSE;
+    if (getenv ("WAYFIRE_CONFIG_FILE")) wayfire = TRUE;
 
     get_locales ();
     needs_reboot = FALSE;
