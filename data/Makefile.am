@@ -19,7 +19,9 @@ ui_in_files = 	rp_prefapps.ui \
 				smartsim.png \
 				thonny.png \
 				vncviewer48x48.png \
-				wolfram-mathematica.png
+				wolfram-mathematica.png \
+				chromium-browser.png \
+				firefox.png
 	
 ui_DATA = $(ui_in_files)
 
