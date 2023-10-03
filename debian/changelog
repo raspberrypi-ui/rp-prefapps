@@ -1,3 +1,9 @@
+rp-prefapps (0.53) bookworm; urgency=medium
+
+  * Remove packages which don't work on bookworm
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 03 Oct 2023 09:10:01 +0100
+
 rp-prefapps (0.52) bookworm; urgency=medium
 
   * Add browsers
