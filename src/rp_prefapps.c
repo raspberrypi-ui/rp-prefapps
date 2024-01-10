@@ -94,7 +94,7 @@ gboolean needs_reboot, first_read, no_update = FALSE, is_pi = TRUE;
 int calls;
 gchar *sel_cat;
 gulong draw_id;
-gboolean wayfire = FALSE;
+gboolean wayland = FALSE;
 
 /*----------------------------------------------------------------------------*/
 /* Prototypes                                                                 */
@@ -409,9 +409,9 @@ static void read_data_file (PkTask *task)
 
         while (groups[gcount])
         {
-            // skip X-only packages if running under wayfire
+            // skip X-only packages if running under wayland
             xonly = g_key_file_get_boolean (kf, groups[gcount], "xonly", NULL);
-            if (xonly && wayfire)
+            if (xonly && wayland)
             {
                 gcount++;
                 continue;
@@ -1486,7 +1486,7 @@ int main (int argc, char *argv[])
 #endif
 
     if (system ("raspi-config nonint is_pi")) is_pi = FALSE;
-    if (getenv ("WAYFIRE_CONFIG_FILE")) wayfire = TRUE;
+    if (getenv ("WAYLAND_DISPLAY")) wayland = TRUE;
 
     get_locales ();
     needs_reboot = FALSE;
