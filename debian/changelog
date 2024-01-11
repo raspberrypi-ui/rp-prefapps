@@ -1,3 +1,9 @@
+rp-prefapps (0.54) bookworm; urgency=medium
+
+  * Add labwc compatibility
+
+ -- Simon Long <simon@raspberrypi.com>  Thu, 11 Jan 2024 14:09:28 +0000
+
 rp-prefapps (0.53) bookworm; urgency=medium
 
   * Remove packages which don't work on bookworm
