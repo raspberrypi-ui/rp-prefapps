@@ -384,7 +384,7 @@ static void read_data_file (PkTask *task)
     GKeyFile *kf;
     gchar **groups, **pnames;
     gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch;
-    gboolean new, reboot, rpdesc, xonly;
+    gboolean new, reboot, rpdesc, xonly, wonly;
     int pcount = 0, gcount = 0;
 
     loc = setlocale (0, "");
@@ -417,6 +417,13 @@ static void read_data_file (PkTask *task)
                 continue;
             }
 
+            // ... and Wayland-only packages if...oh, you get the idea
+            wonly = g_key_file_get_boolean (kf, groups[gcount], "wonly", NULL);
+            if (wonly && !wayland)
+            {
+                gcount++;
+                continue;
+            }
             cat = g_key_file_get_value (kf, groups[gcount], "category", NULL);
             name = g_key_file_get_value (kf, groups[gcount], "name", NULL);
             desc = g_key_file_get_value (kf, groups[gcount], "description", NULL);
@@ -528,7 +535,11 @@ static void read_data_file (PkTask *task)
                 PACK_ARCH, arch ? arch : "any",
                 PACK_RPDESC, rpdesc,
                 -1);
-            if (icon) g_object_unref (icon);
+            if (icon)
+            {
+                g_object_unref (icon);
+                icon = NULL;
+            }
 
             g_free (buf);
             g_free (cat);
