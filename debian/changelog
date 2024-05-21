@@ -1,3 +1,9 @@
+rp-prefapps (0.56) bookworm; urgency=medium
+
+  * Add RPi Connect
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 21 May 2024 10:13:15 +0100
+
 rp-prefapps (0.55) bookworm; urgency=medium
 
   * Remove obsolete packages
