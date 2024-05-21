@@ -10,6 +10,7 @@ ui_in_files = 	rp_prefapps.ui \
 				mage.png \
 				mu.png \
 				orca.png \
+				rpc.png \
 				scratch.png \
 				scratch3.png \
 				sense_emu_gui.png \
