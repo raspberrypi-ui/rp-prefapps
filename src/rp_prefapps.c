@@ -102,7 +102,7 @@ gboolean wayland = FALSE;
 
 static char *get_string (char *cmd);
 static char *name_from_id (const gchar *id);
-static void progress (PkProgress *progress, PkProgressType *type, gpointer data);
+static void progress (PkProgress *progress, PkProgressType type, gpointer data);
 static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gboolean silent, gboolean terminal);
 static gboolean update_self (gpointer data);
 static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
@@ -183,7 +183,7 @@ static char *name_from_id (const gchar *id)
     return NULL;
 }
 
-static void progress (PkProgress *progress, PkProgressType *type, gpointer data)
+static void progress (PkProgress *progress, PkProgressType type, gpointer data)
 {
     char *buf, *name;
     int role = pk_progress_get_role (progress);
