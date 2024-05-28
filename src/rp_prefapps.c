@@ -136,6 +136,106 @@ static void search_update (GtkEditable *editable, gpointer userdata);
 static void get_locales (void);
 static gboolean first_draw (GtkWidget *instance);
 
+#ifdef PK_DEBUG
+const char *roles[PK_ROLE_ENUM_LAST + 1] = {
+	"PK_ROLE_ENUM_UNKNOWN",
+	"PK_ROLE_ENUM_CANCEL",
+	"PK_ROLE_ENUM_DEPENDS_ON",
+	"PK_ROLE_ENUM_GET_DETAILS",
+	"PK_ROLE_ENUM_GET_FILES",
+	"PK_ROLE_ENUM_GET_PACKAGES",
+	"PK_ROLE_ENUM_GET_REPO_LIST",
+	"PK_ROLE_ENUM_REQUIRED_BY",
+	"PK_ROLE_ENUM_GET_UPDATE_DETAIL",
+	"PK_ROLE_ENUM_GET_UPDATES",
+	"PK_ROLE_ENUM_INSTALL_FILES",
+	"PK_ROLE_ENUM_INSTALL_PACKAGES",
+	"PK_ROLE_ENUM_INSTALL_SIGNATURE",
+	"PK_ROLE_ENUM_REFRESH_CACHE",
+	"PK_ROLE_ENUM_REMOVE_PACKAGES",
+	"PK_ROLE_ENUM_REPO_ENABLE",
+	"PK_ROLE_ENUM_REPO_SET_DATA",
+	"PK_ROLE_ENUM_RESOLVE",
+	"PK_ROLE_ENUM_SEARCH_DETAILS",
+	"PK_ROLE_ENUM_SEARCH_FILE",
+	"PK_ROLE_ENUM_SEARCH_GROUP",
+	"PK_ROLE_ENUM_SEARCH_NAME",
+	"PK_ROLE_ENUM_UPDATE_PACKAGES",
+	"PK_ROLE_ENUM_WHAT_PROVIDES",
+	"PK_ROLE_ENUM_ACCEPT_EULA",
+	"PK_ROLE_ENUM_DOWNLOAD_PACKAGES",
+	"PK_ROLE_ENUM_GET_DISTRO_UPGRADES",
+	"PK_ROLE_ENUM_GET_CATEGORIES",
+	"PK_ROLE_ENUM_GET_OLD_TRANSACTIONS",
+	"PK_ROLE_ENUM_REPAIR_SYSTEM",
+	"PK_ROLE_ENUM_GET_DETAILS_LOCAL",
+	"PK_ROLE_ENUM_GET_FILES_LOCAL",
+	"PK_ROLE_ENUM_REPO_REMOVE",
+	"PK_ROLE_ENUM_UPGRADE_SYSTEM",
+	"PK_ROLE_ENUM_LAST"
+};
+
+const char *stati[PK_STATUS_ENUM_LAST + 1] = {
+	"PK_STATUS_ENUM_UNKNOWN",
+	"PK_STATUS_ENUM_WAIT",
+	"PK_STATUS_ENUM_SETUP",
+	"PK_STATUS_ENUM_RUNNING",
+	"PK_STATUS_ENUM_QUERY",
+	"PK_STATUS_ENUM_INFO",
+	"PK_STATUS_ENUM_REMOVE",
+	"PK_STATUS_ENUM_REFRESH_CACHE",
+	"PK_STATUS_ENUM_DOWNLOAD",
+	"PK_STATUS_ENUM_INSTALL",
+	"PK_STATUS_ENUM_UPDATE",
+	"PK_STATUS_ENUM_CLEANUP",
+	"PK_STATUS_ENUM_OBSOLETE",
+	"PK_STATUS_ENUM_DEP_RESOLVE",
+	"PK_STATUS_ENUM_SIG_CHECK",
+	"PK_STATUS_ENUM_TEST_COMMIT",
+	"PK_STATUS_ENUM_COMMIT",
+	"PK_STATUS_ENUM_REQUEST",
+	"PK_STATUS_ENUM_FINISHED",
+	"PK_STATUS_ENUM_CANCEL",
+	"PK_STATUS_ENUM_DOWNLOAD_REPOSITORY",
+	"PK_STATUS_ENUM_DOWNLOAD_PACKAGELIST",
+	"PK_STATUS_ENUM_DOWNLOAD_FILELIST",
+	"PK_STATUS_ENUM_DOWNLOAD_CHANGELOG",
+	"PK_STATUS_ENUM_DOWNLOAD_GROUP",
+	"PK_STATUS_ENUM_DOWNLOAD_UPDATEINFO",
+	"PK_STATUS_ENUM_REPACKAGING",
+	"PK_STATUS_ENUM_LOADING_CACHE",
+	"PK_STATUS_ENUM_SCAN_APPLICATIONS",
+	"PK_STATUS_ENUM_GENERATE_PACKAGE_LIST",
+	"PK_STATUS_ENUM_WAITING_FOR_LOCK",
+	"PK_STATUS_ENUM_WAITING_FOR_AUTH",
+	"PK_STATUS_ENUM_SCAN_PROCESS_LIST",
+	"PK_STATUS_ENUM_CHECK_EXECUTABLE_FILES",
+	"PK_STATUS_ENUM_CHECK_LIBRARIES",
+	"PK_STATUS_ENUM_COPY_FILES",
+	"PK_STATUS_ENUM_RUN_HOOK",
+	"PK_STATUS_ENUM_LAST"
+};
+
+const char *types[PK_PROGRESS_TYPE_SENDER + 1] = {
+	"PK_PROGRESS_TYPE_PACKAGE_ID",
+	"PK_PROGRESS_TYPE_TRANSACTION_ID",
+	"PK_PROGRESS_TYPE_PERCENTAGE",
+	"PK_PROGRESS_TYPE_ALLOW_CANCEL",
+	"PK_PROGRESS_TYPE_STATUS",
+	"PK_PROGRESS_TYPE_ROLE",
+	"PK_PROGRESS_TYPE_CALLER_ACTIVE",
+	"PK_PROGRESS_TYPE_ELAPSED_TIME",
+	"PK_PROGRESS_TYPE_REMAINING_TIME",
+	"PK_PROGRESS_TYPE_SPEED",
+	"PK_PROGRESS_TYPE_DOWNLOAD_SIZE_REMAINING",
+	"PK_PROGRESS_TYPE_UID",
+	"PK_PROGRESS_TYPE_PACKAGE",
+	"PK_PROGRESS_TYPE_ITEM_PROGRESS",
+	"PK_PROGRESS_TYPE_TRANSACTION_FLAGS",
+	"PK_PROGRESS_TYPE_INVALID",
+	"PK_PROGRESS_TYPE_SENDER"
+};
+#endif
 
 /*----------------------------------------------------------------------------*/
 /* Generic helper functions                                                   */
@@ -188,63 +288,78 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
     char *buf, *name;
     int role = pk_progress_get_role (progress);
     int status = pk_progress_get_status (progress);
+    int percent = pk_progress_get_percentage (progress);
 
-    //printf ("progress %d %d %d %d %s\n", role, type, status, pk_progress_get_percentage (progress), pk_progress_get_package_id (progress));
+#ifdef PK_DEBUG
+    printf ("progress %s\t%s\t%s %d %s\n", roles[role], types[type], stati[status], pk_progress_get_percentage (progress), pk_progress_get_package_id (progress));
+#endif
 
     if (msg_dlg)
     {
-        switch (role)
+        if ((type == PK_PROGRESS_TYPE_PERCENTAGE || type == PK_PROGRESS_TYPE_ITEM_PROGRESS
+            || type == PK_PROGRESS_TYPE_PACKAGE || type == PK_PROGRESS_TYPE_PACKAGE_ID
+            || type == PK_PROGRESS_TYPE_DOWNLOAD_SIZE_REMAINING) && percent >= 0 && percent <= 100)
         {
-            case PK_ROLE_ENUM_REFRESH_CACHE :       if (status == PK_STATUS_ENUM_LOADING_CACHE)
-                                                        message (_("Updating package data - please wait..."), 0, pk_progress_get_percentage (progress));
-                                                    else
-                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-                                                    break;
+            switch (role)
+            {
+                case PK_ROLE_ENUM_GET_DETAILS :         if (status == PK_STATUS_ENUM_LOADING_CACHE)
+                                                            message (_("Reading package details - please wait..."), 0, percent);
+                                                        else
+                                                            gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                        break;
 
-            case PK_ROLE_ENUM_RESOLVE :             if (status == PK_STATUS_ENUM_LOADING_CACHE)
-                                                        message (_("Finding packages - please wait..."), 0, pk_progress_get_percentage (progress));
-                                                    else
-                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-                                                    break;
+                case PK_ROLE_ENUM_UPDATE_PACKAGES :     if (status == PK_STATUS_ENUM_LOADING_CACHE)
+                                                            message (_("Updating application - please wait..."), 0, percent);
+                                                        else
+                                                            gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                        break;
 
-            case PK_ROLE_ENUM_UPDATE_PACKAGES :     if (status == PK_STATUS_ENUM_LOADING_CACHE)
-                                                        message (_("Updating application - please wait..."), 0, pk_progress_get_percentage (progress));
-                                                    else
-                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-                                                    break;
-
-            case PK_ROLE_ENUM_GET_DETAILS :         if (status == PK_STATUS_ENUM_LOADING_CACHE)
-                                                        message (_("Reading package details - please wait..."), 0, pk_progress_get_percentage (progress));
-                                                    else
-                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-                                                    break;
-
-            case PK_ROLE_ENUM_INSTALL_PACKAGES :    if (status == PK_STATUS_ENUM_DOWNLOAD || status == PK_STATUS_ENUM_INSTALL)
-                                                    {
-                                                        name = name_from_id (pk_progress_get_package_id (progress));
-                                                        buf = g_strdup_printf (_("%s %s - please wait..."), status == PK_STATUS_ENUM_INSTALL ? _("Installing") : _("Downloading"),
-                                                            name ? name : _("packages"));
-                                                        message (buf, 0, pk_progress_get_percentage (progress));
-                                                    }
-                                                    else
-                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-                                                    break;
-
-            case PK_ROLE_ENUM_REMOVE_PACKAGES :     if (status == PK_STATUS_ENUM_REMOVE)
-                                                    {
-                                                        name = name_from_id (pk_progress_get_package_id (progress));
-                                                        if (name)
+                case PK_ROLE_ENUM_INSTALL_PACKAGES :    if (status == PK_STATUS_ENUM_DOWNLOAD)
                                                         {
-                                                            buf = g_strdup_printf (_("Removing %s - please wait..."), name);
-                                                            message (buf, 0, pk_progress_get_percentage (progress));
+                                                            name = name_from_id (pk_progress_get_package_id (progress));
+                                                            if (name)
+                                                            {
+                                                                buf = g_strdup_printf (_("Downloading %s - please wait..."), name);
+                                                                message (buf, 0, percent);
+                                                            }
+                                                            else
+                                                                message (_("Downloading packages - please wait..."), 0, percent);
+                                                        }
+                                                        else if (status == PK_STATUS_ENUM_INSTALL || status == PK_STATUS_ENUM_RUNNING)
+                                                        {
+                                                            name = name_from_id (pk_progress_get_package_id (progress));
+                                                            if (name)
+                                                            {
+                                                                buf = g_strdup_printf (_("Installing %s - please wait..."), name);
+                                                                message (buf, 0, percent);
+                                                            }
+                                                            else
+                                                                message (_("Installing packages - please wait..."), 0, percent);
                                                         }
                                                         else
-                                                            message (_("Removing packages - please wait..."), 0, pk_progress_get_percentage (progress));
-                                                   }
-                                                    else
-                                                        gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-                                                    break;
+                                                            gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                        break;
+
+                case PK_ROLE_ENUM_REMOVE_PACKAGES :     if (status == PK_STATUS_ENUM_REMOVE || status == PK_STATUS_ENUM_RUNNING)
+                                                        {
+                                                            name = name_from_id (pk_progress_get_package_id (progress));
+                                                            if (name)
+                                                            {
+                                                                buf = g_strdup_printf (_("Removing %s - please wait..."), name);
+                                                                message (buf, 0, percent);
+                                                            }
+                                                            else
+                                                                message (_("Removing packages - please wait..."), 0, percent);
+                                                        }
+                                                        else
+                                                            gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                        break;
+
+                default :                               gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                                                        break;
+            }
         }
+        else gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
     }
 }
 
@@ -302,7 +417,7 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     if (!error_handler (task, res, _("updating package data"), FALSE, TRUE)) return;
 
-    message (_("Finding packages - please wait..."), 0 , -1);
+    message (_("Updating package data - please wait..."), 0 , -1);
 
     pk_client_get_updates_async (PK_CLIENT (task), 0, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) get_updates_done, NULL);
 }
