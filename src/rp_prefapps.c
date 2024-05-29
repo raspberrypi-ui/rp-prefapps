@@ -291,7 +291,7 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
     int percent = pk_progress_get_percentage (progress);
 
 #ifdef PK_DEBUG
-    printf ("progress %s\t%s\t%s %d %s\n", roles[role], types[type], stati[status], pk_progress_get_percentage (progress), pk_progress_get_package_id (progress));
+    printf ("progress %s\t%s\t%s %d %s\n", roles[role], types[type], stati[status], percent, pk_progress_get_package_id (progress));
 #endif
 
     if (msg_dlg)
