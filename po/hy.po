@@ -18,12 +18,12 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../src/rp_prefapps.c:166 ../src/rp_prefapps.c:256 ../src/rp_prefapps.c:1246
-msgid "Updating package data - please wait..."
+msgid "Checking for updates - please wait..."
 msgstr "Փաթեթի տվյալների թարմացում - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:172 ../src/rp_prefapps.c:274 ../src/rp_prefapps.c:465
 #: ../src/rp_prefapps.c:594
-msgid "Finding packages - please wait..."
+msgid "Reading package details - please wait..."
 msgstr "Փաթեթների որոնում - խնդրում ենք սպասել..."
 
 #: ../src/rp_prefapps.c:178 ../src/rp_prefapps.c:294

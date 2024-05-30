@@ -17,12 +17,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 #: ../src/rp_prefapps.c:199 ../src/rp_prefapps.c:289 ../src/rp_prefapps.c:1230
-msgid "Updating package data - please wait..."
-msgstr "Checking for updates - please wait..."
+msgid "Checking for updates - please wait..."
+msgstr ""
 
 #: ../src/rp_prefapps.c:205 ../src/rp_prefapps.c:305 ../src/rp_prefapps.c:567
-msgid "Finding packages - please wait..."
-msgstr "Reading package details - please wait..."
+msgid "Reading package details - please wait..."
+msgstr ""
 
 #: ../src/rp_prefapps.c:211 ../src/rp_prefapps.c:356
 msgid "Updating application - please wait..."

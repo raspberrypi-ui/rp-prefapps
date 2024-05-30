@@ -19,12 +19,12 @@ msgstr ""
 "X-Generator: Poedit 2.3\n"
 
 #: ../src/rp_prefapps.c:167 ../src/rp_prefapps.c:257 ../src/rp_prefapps.c:1247
-msgid "Updating package data - please wait..."
+msgid "Checking for updates - please wait..."
 msgstr "Aggiornamento delle informazioni dei pacchetti..."
 
 #: ../src/rp_prefapps.c:173 ../src/rp_prefapps.c:275 ../src/rp_prefapps.c:466
 #: ../src/rp_prefapps.c:595
-msgid "Finding packages - please wait..."
+msgid "Reading package details - please wait..."
 msgstr "Ricerca dei pacchetti..."
 
 #: ../src/rp_prefapps.c:179 ../src/rp_prefapps.c:295

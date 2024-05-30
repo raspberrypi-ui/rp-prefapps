@@ -19,12 +19,12 @@ msgstr ""
 "Language: ko\n"
 
 #: ../src/rp_prefapps.c:166 ../src/rp_prefapps.c:256 ../src/rp_prefapps.c:1246
-msgid "Updating package data - please wait..."
+msgid "Checking for updates - please wait..."
 msgstr "패키지 데이터 업데이트 중 - 잠시만 기다려주세요..."
 
 #: ../src/rp_prefapps.c:172 ../src/rp_prefapps.c:274 ../src/rp_prefapps.c:465
 #: ../src/rp_prefapps.c:594
-msgid "Finding packages - please wait..."
+msgid "Reading package details - please wait..."
 msgstr "패키지를 찾는 중 - 잠시만 기다려주세요..."
 
 #: ../src/rp_prefapps.c:178 ../src/rp_prefapps.c:294

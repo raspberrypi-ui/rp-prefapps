@@ -413,7 +413,7 @@ static gboolean update_self (gpointer data)
 {
     PkTask *task;
 
-    message (_("Updating package data - please wait..."), MSG_PULSE);
+    message (_("Checking for updates - please wait..."), MSG_PULSE);
 
     task = pk_task_new ();
     if (no_update)
@@ -429,7 +429,7 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     if (!error_handler (task, res, _("updating package data"), FALSE, TRUE)) return;
 
-    message (_("Updating package data - please wait..."), MSG_PULSE);
+    message (_("Checking for updates - please wait..."), MSG_PULSE);
 
     pk_client_get_updates_async (PK_CLIENT (task), 0, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) get_updates_done, NULL);
 }
@@ -691,7 +691,7 @@ static void read_data_file (PkTask *task)
         return;
     }
 
-    message (_("Finding packages - please wait..."), MSG_PULSE);
+    message (_("Reading package details - please wait..."), MSG_PULSE);
 
     pk_client_resolve_async (PK_CLIENT (task), 0, pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_2_done, NULL);
     g_free (pnames);
@@ -1354,7 +1354,7 @@ static gboolean reload (GtkButton *button, gpointer data)
         err_dlg = NULL;
     }
 
-    message (_("Updating package data - please wait..."), MSG_PULSE);
+    message (_("Checking for updates - please wait..."), MSG_PULSE);
 
     gtk_list_store_clear (packages);
     gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv))));
