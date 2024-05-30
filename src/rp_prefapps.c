@@ -325,6 +325,8 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
                                                             {
                                                                 buf = g_strdup_printf (_("Downloading %s - please wait..."), name);
                                                                 message (buf, percent);
+                                                                g_free (buf);
+                                                                g_free (name);
                                                             }
                                                             else
                                                                 message (_("Downloading packages - please wait..."), percent);
@@ -336,6 +338,8 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
                                                             {
                                                                 buf = g_strdup_printf (_("Installing %s - please wait..."), name);
                                                                 message (buf, percent);
+                                                                g_free (name);
+                                                                g_free (buf);
                                                             }
                                                             else
                                                                 message (_("Installing packages - please wait..."), percent);
@@ -351,6 +355,8 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
                                                             {
                                                                 buf = g_strdup_printf (_("Removing %s - please wait..."), name);
                                                                 message (buf, percent);
+                                                                g_free (buf);
+                                                                g_free (name);
                                                             }
                                                             else
                                                                 message (_("Removing packages - please wait..."), percent);
@@ -1068,7 +1074,7 @@ static void install_handler (GtkButton* btn, gpointer ptr)
 
     if (n_inst)
     {
-        message (_("Installing packages - please wait..."), MSG_PULSE);
+        message (_("Downloading packages - please wait..."), MSG_PULSE);
 
         task = pk_task_new ();
         pk_task_install_packages_async (task, pinst, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) install_done, NULL);
