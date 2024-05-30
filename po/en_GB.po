@@ -20,10 +20,6 @@ msgstr ""
 msgid "Checking for updates - please wait..."
 msgstr ""
 
-#: ../src/rp_prefapps.c:205 ../src/rp_prefapps.c:305 ../src/rp_prefapps.c:567
-msgid "Reading package details - please wait..."
-msgstr ""
-
 #: ../src/rp_prefapps.c:211 ../src/rp_prefapps.c:356
 msgid "Updating application - please wait..."
 msgstr ""

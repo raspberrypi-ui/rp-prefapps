@@ -22,11 +22,6 @@ msgstr ""
 msgid "Checking for updates - please wait..."
 msgstr "Oppdaterer pakkedata - vennligst vent …"
 
-#: ../src/rp_prefapps.c:172 ../src/rp_prefapps.c:274 ../src/rp_prefapps.c:465
-#: ../src/rp_prefapps.c:594
-msgid "Reading package details - please wait..."
-msgstr "Finner pakker - vennligst vent …"
-
 #: ../src/rp_prefapps.c:178 ../src/rp_prefapps.c:294
 msgid "Updating application - please wait..."
 msgstr "Oppdaterer programmet - vennligst vent …"
