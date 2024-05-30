@@ -1377,7 +1377,7 @@ static gboolean quit (GtkButton *button, gpointer data)
         err_dlg = NULL;
     }
 
-    if ((int) data == 1) system ("reboot");
+    if ((long) data == 1) system ("reboot");
 
     gtk_main_quit ();
     return FALSE;
