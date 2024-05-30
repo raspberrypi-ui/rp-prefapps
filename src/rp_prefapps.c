@@ -74,6 +74,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define CAT_NAME            1
 #define CAT_DISP_NAME       2
 
+#define MSG_PULSE  -1
+#define MSG_PROMPT -2
+#define MSG_REBOOT -3
+
 /* Controls */
 
 static GtkWidget *main_dlg, *cat_tv, *pack_tv, *close_btn, *apply_btn, *search_te;
@@ -120,7 +124,7 @@ static void remove_done (PkTask *task, GAsyncResult *res, gpointer data);
 static gboolean reload (GtkButton *button, gpointer data);
 static gboolean quit (GtkButton *button, gpointer data);
 static void error_box (char *msg, gboolean terminal);
-static void message (char *msg, int wait, int prog);
+static void message (char *msg, int type);
 static gboolean clock_synced (void);
 static void resync (void);
 static gboolean ntp_check (gpointer data);
@@ -303,13 +307,13 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
             switch (role)
             {
                 case PK_ROLE_ENUM_GET_DETAILS :         if (status == PK_STATUS_ENUM_LOADING_CACHE)
-                                                            message (_("Reading package details - please wait..."), 0, percent);
+                                                            message (_("Reading package details - please wait..."), percent);
                                                         else
                                                             gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
                                                         break;
 
                 case PK_ROLE_ENUM_UPDATE_PACKAGES :     if (status == PK_STATUS_ENUM_LOADING_CACHE)
-                                                            message (_("Updating application - please wait..."), 0, percent);
+                                                            message (_("Updating application - please wait..."), percent);
                                                         else
                                                             gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
                                                         break;
@@ -320,10 +324,10 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
                                                             if (name)
                                                             {
                                                                 buf = g_strdup_printf (_("Downloading %s - please wait..."), name);
-                                                                message (buf, 0, percent);
+                                                                message (buf, percent);
                                                             }
                                                             else
-                                                                message (_("Downloading packages - please wait..."), 0, percent);
+                                                                message (_("Downloading packages - please wait..."), percent);
                                                         }
                                                         else if (status == PK_STATUS_ENUM_INSTALL || status == PK_STATUS_ENUM_RUNNING)
                                                         {
@@ -331,10 +335,10 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
                                                             if (name)
                                                             {
                                                                 buf = g_strdup_printf (_("Installing %s - please wait..."), name);
-                                                                message (buf, 0, percent);
+                                                                message (buf, percent);
                                                             }
                                                             else
-                                                                message (_("Installing packages - please wait..."), 0, percent);
+                                                                message (_("Installing packages - please wait..."), percent);
                                                         }
                                                         else
                                                             gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
@@ -346,10 +350,10 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
                                                             if (name)
                                                             {
                                                                 buf = g_strdup_printf (_("Removing %s - please wait..."), name);
-                                                                message (buf, 0, percent);
+                                                                message (buf, percent);
                                                             }
                                                             else
-                                                                message (_("Removing packages - please wait..."), 0, percent);
+                                                                message (_("Removing packages - please wait..."), percent);
                                                         }
                                                         else
                                                             gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
@@ -377,6 +381,7 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gb
         buf = g_strdup_printf (_("Error %s - %s"), desc, error->message);
         error_box (buf, terminal);
         g_free (buf);
+        g_error_free (error);
         return NULL;
     }
 
@@ -387,6 +392,7 @@ static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gb
         buf = g_strdup_printf (_("Error %s - %s"), desc, pk_error_get_details (pkerror));
         error_box (buf, terminal);
         g_free (buf);
+        g_object_unref (pkerror);
         return NULL;
     }
 
@@ -401,7 +407,7 @@ static gboolean update_self (gpointer data)
 {
     PkTask *task;
 
-    message (_("Updating package data - please wait..."), 0 , -1);
+    message (_("Updating package data - please wait..."), MSG_PULSE);
 
     task = pk_task_new ();
     if (no_update)
@@ -417,7 +423,7 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
 {
     if (!error_handler (task, res, _("updating package data"), FALSE, TRUE)) return;
 
-    message (_("Updating package data - please wait..."), 0 , -1);
+    message (_("Updating package data - please wait..."), MSG_PULSE);
 
     pk_client_get_updates_async (PK_CLIENT (task), 0, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) get_updates_done, NULL);
 }
@@ -468,7 +474,7 @@ static void get_updates_done (PkTask *task, GAsyncResult *res, gpointer data)
 
         if (todo[0])
         {
-            message (_("Updating application - please wait..."), 0 , -1);
+            message (_("Updating application - please wait..."), MSG_PULSE);
             pk_task_update_packages_async (task, todo, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
             g_free (todo[0]);
             g_object_unref (sack);
@@ -679,7 +685,7 @@ static void read_data_file (PkTask *task)
         return;
     }
 
-    message (_("Finding packages - please wait..."), 0 , -1);
+    message (_("Finding packages - please wait..."), MSG_PULSE);
 
     pk_client_resolve_async (PK_CLIENT (task), 0, pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_2_done, NULL);
     g_free (pnames);
@@ -855,7 +861,7 @@ static void resolve_2_done (PkTask *task, GAsyncResult *res, gpointer data)
     }
     g_ptr_array_unref (array);
 
-    message (_("Reading package details - please wait..."), 0 , -1);
+    message (_("Reading package details - please wait..."), MSG_PULSE);
 
     ids = pk_package_sack_get_ids (fsack);
     pk_client_get_details_async (PK_CLIENT (task), ids, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
@@ -1062,14 +1068,14 @@ static void install_handler (GtkButton* btn, gpointer ptr)
 
     if (n_inst)
     {
-        message (_("Installing packages - please wait..."), 0 , -1);
+        message (_("Installing packages - please wait..."), MSG_PULSE);
 
         task = pk_task_new ();
         pk_task_install_packages_async (task, pinst, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) install_done, NULL);
     }
     else if (n_uninst)
     {
-        message (_("Removing packages - please wait..."), 0 , -1);
+        message (_("Removing packages - please wait..."), MSG_PULSE);
 
         task = pk_task_new ();
         pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
@@ -1090,12 +1096,12 @@ static void install_done (PkTask *task, GAsyncResult *res, gpointer data)
 
     if (n_uninst)
     {
-        message (_("Removing packages - please wait..."), 0 , -1);
+        message (_("Removing packages - please wait..."), MSG_PULSE);
 
         pk_task_remove_packages_async (task, puninst, TRUE, TRUE, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) remove_done, NULL);
     }
     else
-        message (_("Installation complete"), 1, -1);
+        message (_("Installation complete"), MSG_PROMPT);
 }
 
 static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
@@ -1106,9 +1112,9 @@ static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
     if (!access ("/run/reboot-required", F_OK)) needs_reboot = TRUE;
 
     if (n_inst)
-        message (_("Installation and removal complete"), 1, -1);
+        message (_("Installation and removal complete"), MSG_PROMPT);
     else
-        message (_("Removal complete"), 1, -1);
+        message (_("Removal complete"), MSG_PROMPT);
 }
 
 static gboolean clock_synced (void)
@@ -1342,7 +1348,7 @@ static gboolean reload (GtkButton *button, gpointer data)
         err_dlg = NULL;
     }
 
-    message (_("Updating package data - please wait..."), 0 , -1);
+    message (_("Updating package data - please wait..."), MSG_PULSE);
 
     gtk_list_store_clear (packages);
     gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv))));
@@ -1406,7 +1412,7 @@ static void error_box (char *msg, gboolean terminal)
 }
 
 
-static void message (char *msg, int wait, int prog)
+static void message (char *msg, int type)
 {
     if (err_dlg)
     {
@@ -1422,49 +1428,45 @@ static void message (char *msg, int wait, int prog)
         builder = gtk_builder_new_from_file (PACKAGE_DATA_DIR "/rp_prefapps.ui");
 
         msg_dlg = (GtkWidget *) gtk_builder_get_object (builder, "modal");
-        gtk_window_set_transient_for (GTK_WINDOW (msg_dlg), GTK_WINDOW (main_dlg));
-
         msg_msg = (GtkWidget *) gtk_builder_get_object (builder, "modal_msg");
         msg_pb = (GtkWidget *) gtk_builder_get_object (builder, "modal_pb");
         msg_btn = (GtkWidget *) gtk_builder_get_object (builder, "modal_ok");
         msg_cancel = (GtkWidget *) gtk_builder_get_object (builder, "modal_cancel");
 
-        gtk_label_set_text (GTK_LABEL (msg_msg), msg);
+        gtk_window_set_transient_for (GTK_WINDOW (msg_dlg), GTK_WINDOW (main_dlg));
 
         g_object_unref (builder);
     }
-    else gtk_label_set_text (GTK_LABEL (msg_msg), msg);
 
-    if (wait)
+    gtk_label_set_text (GTK_LABEL (msg_msg), msg);
+
+    gtk_widget_hide (msg_pb);
+    gtk_widget_hide (msg_btn);
+    gtk_widget_hide (msg_cancel);
+
+    switch (type)
     {
-        gtk_widget_hide (msg_pb);
-        if (wait > 1)
-        {
-            gtk_button_set_label (GTK_BUTTON (msg_btn), "_Yes");
-            gtk_button_set_label (GTK_BUTTON (msg_cancel), "_No");
-            g_signal_connect (msg_btn, "clicked", G_CALLBACK (quit), (void *) 1);
-            g_signal_connect (msg_cancel, "clicked", G_CALLBACK (quit), (void *) 0);
-            gtk_widget_show (msg_cancel);
-        }
-        else
-        {
-            g_signal_connect (msg_btn, "clicked", G_CALLBACK (reload), NULL);
-            gtk_widget_hide (msg_cancel);
-        }
-        gtk_widget_show (msg_btn);
+        case MSG_PROMPT:    g_signal_connect (msg_btn, "clicked", G_CALLBACK (reload), NULL);
+                            gtk_widget_show (msg_btn);
+                            break;
+
+        case MSG_REBOOT:    gtk_button_set_label (GTK_BUTTON (msg_btn), "_Yes");
+                            gtk_button_set_label (GTK_BUTTON (msg_cancel), "_No");
+                            g_signal_connect (msg_btn, "clicked", G_CALLBACK (quit), (void *) 1);
+                            g_signal_connect (msg_cancel, "clicked", G_CALLBACK (quit), (void *) 0);
+                            gtk_widget_show (msg_btn);
+                            gtk_widget_show (msg_cancel);
+                            break;
+
+        case MSG_PULSE:     gtk_widget_show (msg_pb);
+                            gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
+                            break;
+
+        default :           gtk_widget_show (msg_pb);
+                            gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (msg_pb), (type / 100.0));
+                            break;
     }
-    else
-    {
-        gtk_widget_hide (msg_cancel);
-        gtk_widget_hide (msg_btn);
-        gtk_widget_show (msg_pb);
-        if (prog == -1) gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
-        else
-        {
-            float progress = prog / 100.0;
-            gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR (msg_pb), progress);
-        }
-    }
+
     gtk_widget_show (msg_dlg);
 }
 
@@ -1530,7 +1532,7 @@ static void install_toggled (GtkCellRendererToggle *cell, gchar *path, gpointer 
 static void close_handler (GtkButton* btn, gpointer ptr)
 {
     if (needs_reboot)
-        message (_("An installed application requires a reboot.\nWould you like to reboot now?"), 2, -1);
+        message (_("An installed application requires a reboot.\nWould you like to reboot now?"), MSG_REBOOT);
     else
         gtk_main_quit ();
 }
@@ -1583,7 +1585,7 @@ static gboolean first_draw (GtkWidget *instance)
         if (clock_synced ()) g_idle_add (update_self, NULL);
         else
         {
-            message (_("Synchronising clock - please wait..."), 0, -1);
+            message (_("Synchronising clock - please wait..."), MSG_PULSE);
             calls = 0;
             g_timeout_add_seconds (1, ntp_check, NULL);
         }
