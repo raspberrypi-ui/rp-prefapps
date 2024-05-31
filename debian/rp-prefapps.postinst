@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+if [ "$1" = "configure" ]; then
+  if [ -e /etc/polkit-1/rules.d/10-timesync.rules ] ; then
+    rm /etc/polkit-1/rules.d/10-timesync.rules
+  fi
+fi
+
+#DEBHELPER#
+
+exit 0
