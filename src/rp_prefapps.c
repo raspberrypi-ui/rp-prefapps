@@ -105,7 +105,6 @@ gboolean wayland = FALSE;
 /*----------------------------------------------------------------------------*/
 
 static char *get_string (char *cmd);
-static char *name_from_id (const gchar *id);
 static void progress (PkProgress *progress, PkProgressType type, gpointer data);
 static PkResults *error_handler (PkTask *task, GAsyncResult *res, char *desc, gboolean silent, gboolean terminal);
 static gboolean update_self (gpointer data);
@@ -271,22 +270,6 @@ static char *get_string (char *cmd)
 /* Helper functions for async operations                                      */
 /*----------------------------------------------------------------------------*/
 
-static char *name_from_id (const gchar *id)
-{
-    GtkTreeIter iter;
-    gboolean valid;
-    gchar *tid, *name;
-
-    valid = gtk_tree_model_get_iter_first (GTK_TREE_MODEL (packages), &iter);
-    while (valid)
-    {
-        gtk_tree_model_get (GTK_TREE_MODEL (packages), &iter, PACK_PACKAGE_ID, &tid, PACK_CELL_NAME, &name, -1);
-        if (!g_strcmp0 (id, tid)) return name;
-        valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (packages), &iter);
-    }
-    return NULL;
-}
-
 static void progress (PkProgress *progress, PkProgressType type, gpointer data)
 {
     char *buf, *name;
@@ -320,48 +303,15 @@ static void progress (PkProgress *progress, PkProgressType type, gpointer data)
                                                         break;
 
                 case PK_ROLE_ENUM_INSTALL_PACKAGES :    if (status == PK_STATUS_ENUM_DOWNLOAD)
-                                                        {
-                                                            name = name_from_id (pk_progress_get_package_id (progress));
-                                                            if (name)
-                                                            {
-                                                                buf = g_strdup_printf (_("Downloading %s - please wait..."), name);
-                                                                message (buf, percent);
-                                                                g_free (buf);
-                                                                g_free (name);
-                                                            }
-                                                            else
-                                                                message (_("Downloading packages - please wait..."), percent);
-                                                        }
+                                                            message (_("Downloading packages - please wait..."), percent);
                                                         else if (status == PK_STATUS_ENUM_INSTALL || status == PK_STATUS_ENUM_RUNNING)
-                                                        {
-                                                            name = name_from_id (pk_progress_get_package_id (progress));
-                                                            if (name)
-                                                            {
-                                                                buf = g_strdup_printf (_("Installing %s - please wait..."), name);
-                                                                message (buf, percent);
-                                                                g_free (name);
-                                                                g_free (buf);
-                                                            }
-                                                            else
-                                                                message (_("Installing packages - please wait..."), percent);
-                                                        }
+                                                            message (_("Installing packages - please wait..."), percent);
                                                         else
                                                             gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
                                                         break;
 
                 case PK_ROLE_ENUM_REMOVE_PACKAGES :     if (status == PK_STATUS_ENUM_REMOVE || status == PK_STATUS_ENUM_RUNNING)
-                                                        {
-                                                            name = name_from_id (pk_progress_get_package_id (progress));
-                                                            if (name)
-                                                            {
-                                                                buf = g_strdup_printf (_("Removing %s - please wait..."), name);
-                                                                message (buf, percent);
-                                                                g_free (buf);
-                                                                g_free (name);
-                                                            }
-                                                            else
-                                                                message (_("Removing packages - please wait..."), percent);
-                                                        }
+                                                            message (_("Removing packages - please wait..."), percent);
                                                         else
                                                             gtk_progress_bar_pulse (GTK_PROGRESS_BAR (msg_pb));
                                                         break;
