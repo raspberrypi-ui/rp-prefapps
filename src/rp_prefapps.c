@@ -272,7 +272,6 @@ static char *get_string (char *cmd)
 
 static void progress (PkProgress *progress, PkProgressType type, gpointer data)
 {
-    char *buf, *name;
     int role = pk_progress_get_role (progress);
     int status = pk_progress_get_status (progress);
     int percent = pk_progress_get_percentage (progress);
