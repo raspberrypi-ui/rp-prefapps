@@ -1,0 +1,19 @@
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.systemd1.manage-units" &&
+        action.lookup("unit") == "systemd-timesyncd.service") &&
+        action.lookup("cmdline") == "rp-prefapps") {
+        return polkit.Result.YES;
+    }
+});
+
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.packagekit.package-install" ||
+        action.id == "org.freedesktop.packagekit.package-reinstall" ||
+        action.id == "org.freedesktop.packagekit.package-remove" ||
+        action.id == "org.freedesktop.packagekit.system-update" ||
+        action.id == "org.freedesktop.packagekit.upgrade-system") &&
+        action.lookup("cmdline") == "rp-prefapps" &&
+        subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+});

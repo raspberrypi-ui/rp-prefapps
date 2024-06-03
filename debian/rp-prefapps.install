@@ -1,2 +1,2 @@
 #!/usr/bin/dh-exec
-data/10-prefapps-timesync.rules => /etc/polkit-1/rules.d/10-prefapps-timesync.rules
+data/10-rp-prefapps.rules => /usr/share/polkit-1/rules.d/10-rp-prefapps.rules
