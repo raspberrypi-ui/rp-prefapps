@@ -18,7 +18,8 @@ ui_in_files = 	rp_prefapps.ui \
 				vncviewer48x48.png \
 				wolfram-mathematica.png \
 				chromium-browser.png \
-				firefox.png
+				firefox.png \
+				squeekboard.png
 	
 ui_DATA = $(ui_in_files)
 
