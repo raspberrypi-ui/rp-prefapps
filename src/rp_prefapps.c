@@ -1361,7 +1361,7 @@ static void error_box (char *msg, gboolean terminal)
         else
             g_signal_connect (err_btn, "clicked", G_CALLBACK (reload), NULL);
 
-        gtk_widget_show_all (err_dlg);
+        gtk_widget_show (err_dlg);
         g_object_unref (builder);
     }
     else gtk_label_set_text (GTK_LABEL (err_msg), msg);
