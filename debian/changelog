@@ -1,3 +1,9 @@
+rp-prefapps (0.65) bookworm; urgency=medium
+
+  * Add Code the Classics 2
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 12 Nov 2024 07:51:56 +0000
+
 rp-prefapps (0.64) bookworm; urgency=medium
 
   * Update name of Chromium package
