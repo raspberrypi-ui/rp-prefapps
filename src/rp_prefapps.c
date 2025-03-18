@@ -664,13 +664,24 @@ static gboolean match_pid (char *name, const char *pid)
 
 static gboolean match_arch (char *arch)
 {
+    FILE *fp;
+
     if (!g_strcmp0 (arch, "any")) return TRUE;
 
+    /* check the hardware architecture */
     char *cmd = g_strdup_printf ("arch | grep -q %s", arch);
-    FILE *fp = popen (cmd, "r");
+    fp = popen (cmd, "r");
     int res = pclose (fp);
     g_free (cmd);
-    if (!res) return TRUE;
+    if (res) return FALSE;
+
+    /* additional check for 64-bit only code on ARM */
+    if (!g_strcmp0 (arch, "aarch64"))
+    {
+        fp = popen ("getconf LONG_BIT | grep -q 64", "r");
+        if (!pclose (fp)) return TRUE;
+    }
+
     return FALSE;
 }
 
