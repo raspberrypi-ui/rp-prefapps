@@ -1,3 +1,9 @@
+rp-prefapps (0.68) bookworm; urgency=medium
+
+  * Switch to meson build system
+
+ -- Simon Long <simon@raspberrypi.com>  Thu, 27 Mar 2025 12:24:28 +0000
+
 rp-prefapps (0.67) bookworm; urgency=medium
 
   * Make Mathematica 64-bit only

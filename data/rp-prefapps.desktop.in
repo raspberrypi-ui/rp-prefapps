@@ -1,8 +1,8 @@
 [Desktop Entry]
 Type=Application
-_Name=Recommended Software
-_GenericName=Recommended Software
-_Comment=Install additional programs recommended for use on the Pi
+Name=Recommended Software
+GenericName=Recommended Software
+Comment=Install additional programs recommended for use on the Pi
 Icon=rpi
 Exec=rp-prefapps
 StartupNotify=true
