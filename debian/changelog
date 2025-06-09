@@ -1,3 +1,9 @@
+rp-prefapps (1.0) trixie; urgency=medium
+
+  * Trixie version
+
+ -- Simon Long <simon@raspberrypi.com>  Mon, 09 Jun 2025 15:02:40 +0100
+
 rp-prefapps (0.69) bookworm; urgency=medium
 
   * Rename mage package

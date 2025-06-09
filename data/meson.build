@@ -18,7 +18,9 @@ data = files (
     'wolfram-mathematica.png',
     'chromium-browser.png',
     'firefox.png',
-    'squeekboard.png'
+    'squeekboard.png',
+    'ctc2.png',
+    'rpi.png'
 )
 
 install_data(data, install_dir: resource_dir)

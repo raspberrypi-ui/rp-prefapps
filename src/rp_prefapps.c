@@ -458,7 +458,7 @@ static void read_data_file (PkClient *client)
     GtkIconInfo *iinfo;
     GKeyFile *kf;
     gchar **groups, **pnames;
-    gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch;
+    gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch, *fname;
     gboolean new, reboot, rpdesc, xonly, wonly;
     int pcount = 0, gcount = 0;
 
@@ -575,12 +575,9 @@ static void read_data_file (PkClient *client)
             }
 
             // create the entry for the packages list
-            iinfo = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), iname, 32, GTK_ICON_LOOKUP_FORCE_SIZE);
-            if (iinfo)
-            {
-                icon = gtk_icon_info_load_icon (iinfo, NULL);
-                g_object_unref (iinfo);
-            }
+            fname = g_strdup_printf ("%s/%s.png", PACKAGE_DATA_DIR, iname);
+            icon = gdk_pixbuf_new_from_file_at_size (fname, 32, 32, NULL);
+            g_free (fname);
             if (!icon)
             {
                 iinfo = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, GTK_ICON_LOOKUP_FORCE_SIZE);
@@ -1582,7 +1579,6 @@ int main (int argc, char *argv[])
 
     // GTK setup
     gtk_init (&argc, &argv);
-    gtk_icon_theme_prepend_search_path (gtk_icon_theme_get_default(), PACKAGE_DATA_DIR);
 
     // build the UI
     builder = gtk_builder_new_from_file (PACKAGE_DATA_DIR "/rp_prefapps.ui");
