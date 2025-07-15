@@ -9,6 +9,6 @@ Homepage: http://raspberrypi.com/
 
 Package: rp-prefapps
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, packagekit, raspi-config, libgtk-3-0 (>= 3.24)
+Depends: ${shlibs:Depends}, ${misc:Depends}, packagekit, raspi-config
 Description: Raspberry Pi recommended applications
  Installer for selected packages recommended for Raspberry Pi users
