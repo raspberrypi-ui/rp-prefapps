@@ -546,6 +546,7 @@ static void read_data_file (PkClient *client)
                     add = strtok (NULL, ",");
                 }
                 g_free (addspl);
+                pnames[pcount] = NULL;
             }
 
             // add unique entries to category list
