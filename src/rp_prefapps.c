@@ -946,6 +946,7 @@ static void details_done (PkClient *client, GAsyncResult *res, gpointer data)
 
     gtk_widget_set_sensitive (close_btn, TRUE);
     gtk_widget_set_sensitive (apply_btn, TRUE);
+    gtk_widget_grab_focus (close_btn);
 
     gtk_widget_destroy (GTK_WIDGET (msg_dlg));
     msg_dlg = NULL;

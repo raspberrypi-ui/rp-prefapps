@@ -1,3 +1,9 @@
+rp-prefapps (1.4) trixie; urgency=medium
+
+  * Set initial focus to close button
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 23 Sep 2025 11:49:54 +0100
+
 rp-prefapps (1.3) trixie; urgency=medium
 
   * Set cursor to checkbox column so space key works
