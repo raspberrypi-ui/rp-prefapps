@@ -1459,10 +1459,9 @@ static void category_selected (GtkTreeView *tv, gpointer ptr)
 
     model = gtk_tree_view_get_model (GTK_TREE_VIEW (pack_tv));
     path = gtk_tree_path_new_first ();
-    col = gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2);
     gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (model));
     gtk_tree_view_scroll_to_cell (GTK_TREE_VIEW (pack_tv), path, NULL, TRUE, 0.0, 0.0);
-    gtk_tree_view_set_cursor (GTK_TREE_VIEW (pack_tv), path, col, FALSE);
+    gtk_tree_view_set_cursor (GTK_TREE_VIEW (pack_tv), path, NULL, FALSE);
     gtk_tree_path_free (path);
 }
 

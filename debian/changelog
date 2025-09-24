@@ -1,3 +1,9 @@
+rp-prefapps (1.5) trixie; urgency=medium
+
+  * Do not select column when setting cursor, as it hides the focus
+
+ -- Simon Long <simon@raspberrypi.com>  Wed, 24 Sep 2025 15:06:27 +0100
+
 rp-prefapps (1.4) trixie; urgency=medium
 
   * Set initial focus to close button
