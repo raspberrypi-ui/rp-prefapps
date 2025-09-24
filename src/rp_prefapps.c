@@ -946,7 +946,7 @@ static void details_done (PkClient *client, GAsyncResult *res, gpointer data)
 
     gtk_widget_set_sensitive (close_btn, TRUE);
     gtk_widget_set_sensitive (apply_btn, TRUE);
-    gtk_widget_grab_focus (close_btn);
+    gtk_widget_grab_focus (apply_btn);
 
     gtk_widget_destroy (GTK_WIDGET (msg_dlg));
     msg_dlg = NULL;
@@ -1444,7 +1444,6 @@ static void category_selected (GtkTreeView *tv, gpointer ptr)
     GtkTreeModel *model;
     GtkTreePath *path;
     GtkTreeSelection *sel;
-    GtkTreeViewColumn *col;
     GtkTreeIter iter;
 
     // store the path of the new selection so it can be reloaded
