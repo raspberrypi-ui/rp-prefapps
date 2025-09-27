@@ -1,3 +1,9 @@
+rp-prefapps (1.6) trixie; urgency=medium
+
+  * Add pixbuf padding in here rather than globally
+
+ -- Simon Long <simon@raspberrypi.com>  Sat, 27 Sep 2025 15:57:33 +0100
+
 rp-prefapps (1.5) trixie; urgency=medium
 
   * Do not select column when setting cursor, as it hides the focus

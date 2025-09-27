@@ -1604,6 +1604,7 @@ int main (int argc, char *argv[])
     crp = gtk_cell_renderer_pixbuf_new ();
     crt = gtk_cell_renderer_text_new ();
     crb = gtk_cell_renderer_toggle_new ();
+    gtk_cell_renderer_set_padding (crp, 5, 5);
 
     gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 0, "Icon", crp, "pixbuf", CAT_ICON, NULL);
     gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 1, "Category", crt, "text", CAT_DISP_NAME, NULL);
@@ -1617,7 +1618,7 @@ int main (int argc, char *argv[])
     gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (pack_tv), 2, _("Install"), crb, "active", PACK_INSTALLED, NULL);
 
     gtk_tree_view_column_set_sizing (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 0), GTK_TREE_VIEW_COLUMN_FIXED);
-    gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 0), 45);
+    gtk_tree_view_column_set_fixed_width (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 0), 50);
     gtk_tree_view_column_set_expand (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 1), TRUE);
     g_object_set (crt, "wrap-mode", PANGO_WRAP_WORD, "wrap-width", 355, NULL);
     gtk_tree_view_column_set_sizing (gtk_tree_view_get_column (GTK_TREE_VIEW (pack_tv), 2), GTK_TREE_VIEW_COLUMN_FIXED);
