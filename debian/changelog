@@ -1,3 +1,9 @@
+rp-prefapps (1.7) trixie; urgency=medium
+
+  * Remove Mu
+
+ -- Simon Long <simon@raspberrypi.com>  Wed, 01 Oct 2025 08:14:11 +0100
+
 rp-prefapps (1.6) trixie; urgency=medium
 
   * Add pixbuf padding in here rather than globally
