@@ -1,0 +1,245 @@
+# rp-prefapps Brazilian Portuguese translation file.
+# Copyright (C) 2024 Raspberry Pi Ltd
+# This file is distributed under the same license as the rp-prefapps package.
+# Eduardo Addad de Oliveira <eduardo@addadtech.com.br>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-05-28 13:46+0100\n"
+"PO-Revision-Date: 2025-10-06 22:49-0300\n"
+"Last-Translator: Eduardo Addad de Oliveira <eduardo@addadtech.com.br>\n"
+"Language-Team: Portuguese (Brazil)\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.7\n"
+
+#: ../src/rp_prefapps.c:199 ../src/rp_prefapps.c:289 ../src/rp_prefapps.c:1230
+msgid "Checking for updates - please wait..."
+msgstr "Verificando por atualizações - por favor espere..."
+
+#: ../src/rp_prefapps.c:211 ../src/rp_prefapps.c:356
+msgid "Updating application - please wait..."
+msgstr "Atualizando aplicativo - por favor espere..."
+
+#: ../src/rp_prefapps.c:217 ../src/rp_prefapps.c:743
+msgid "Reading package details - please wait..."
+msgstr "Lendo detalhes do pacote - por favor espere..."
+
+#: ../src/rp_prefapps.c:225
+#, c-format
+msgid "%s %s - please wait..."
+msgstr "%s %s - por favor espere..."
+
+#: ../src/rp_prefapps.c:225
+msgid "Installing"
+msgstr "Instalando"
+
+#: ../src/rp_prefapps.c:225
+msgid "Downloading"
+msgstr "Baixando"
+
+#: ../src/rp_prefapps.c:226
+msgid "packages"
+msgstr "pacotes"
+
+#: ../src/rp_prefapps.c:238
+#, c-format
+msgid "Removing %s - please wait..."
+msgstr "Removendo %s - por favor espere..."
+
+#: ../src/rp_prefapps.c:242 ../src/rp_prefapps.c:957 ../src/rp_prefapps.c:978
+msgid "Removing packages - please wait..."
+msgstr "Removendo pacotes - por favor espere..."
+
+#: ../src/rp_prefapps.c:262 ../src/rp_prefapps.c:272
+#, c-format
+msgid "Error %s - %s"
+msgstr "Erro %s - %s"
+
+#: ../src/rp_prefapps.c:303
+msgid "updating package data"
+msgstr "atualizando dados de pacote"
+
+#: ../src/rp_prefapps.c:334 ../src/rp_prefapps.c:614
+msgid "finding packages"
+msgstr "encontrando pacotes"
+
+#: ../src/rp_prefapps.c:405 ../src/rp_prefapps.c:760 ../src/rp_prefapps.c:761
+msgid "All Programs"
+msgstr "Todos os programas"
+
+#: ../src/rp_prefapps.c:519
+#, c-format
+msgid ""
+"<b>%s</b>\n"
+"%s"
+msgstr ""
+"<b>%s</b>\n"
+"%s"
+
+#: ../src/rp_prefapps.c:563
+msgid "Unable to open package data file"
+msgstr "Não foi possível abri o arquivo de dados do programa"
+
+#: ../src/rp_prefapps.c:782
+msgid "reading package details"
+msgstr "lendo os detalhes do pacote"
+
+#: ../src/rp_prefapps.c:950
+msgid "Installing packages - please wait..."
+msgstr "Instalando pacotes - por favor espere..."
+
+#: ../src/rp_prefapps.c:971
+msgid "installing packages"
+msgstr "instalando pacotes"
+
+#: ../src/rp_prefapps.c:983
+msgid "Installation complete"
+msgstr "Instalação completa"
+
+#: ../src/rp_prefapps.c:988
+msgid "removing packages"
+msgstr "removendo pacotes"
+
+#: ../src/rp_prefapps.c:994
+msgid "Installation and removal complete"
+msgstr "Instalação e remoção completa"
+
+#: ../src/rp_prefapps.c:996
+msgid "Removal complete"
+msgstr "Remoção completa"
+
+#: ../src/rp_prefapps.c:1037
+msgid "Error synchronising clock - could not sync with time server"
+msgstr "Erro ao sincronizar o relógio - não foi possível sincronizar com o servidor de hora"
+
+#: ../src/rp_prefapps.c:1083
+msgid "Programming"
+msgstr "Programação"
+
+#: ../src/rp_prefapps.c:1086
+msgid "Office"
+msgstr "Escritório"
+
+#: ../src/rp_prefapps.c:1089
+msgid "Internet"
+msgstr "Internet"
+
+#: ../src/rp_prefapps.c:1092
+msgid "Games"
+msgstr "Jogos"
+
+#: ../src/rp_prefapps.c:1095
+msgid "Other"
+msgstr "Outros"
+
+#: ../src/rp_prefapps.c:1098
+msgid "Accessories"
+msgstr "Acessórios"
+
+#: ../src/rp_prefapps.c:1101
+msgid "Sound & Video"
+msgstr "Som e vídeo"
+
+#: ../src/rp_prefapps.c:1104
+msgid "System Tools"
+msgstr "Ferramentas do sistema"
+
+#: ../src/rp_prefapps.c:1107
+msgid "Engineering"
+msgstr "Engenharia"
+
+#: ../src/rp_prefapps.c:1110
+msgid "Education"
+msgstr "Educação"
+
+#: ../src/rp_prefapps.c:1113
+msgid "Graphics"
+msgstr "Gráficos"
+
+#: ../src/rp_prefapps.c:1116
+msgid "Science & Maths"
+msgstr "Ciência e matemática"
+
+#: ../src/rp_prefapps.c:1119
+msgid "Preferences"
+msgstr "Preferências"
+
+#: ../src/rp_prefapps.c:1122
+msgid "Universal Access"
+msgstr "Acesso universal"
+
+#: ../src/rp_prefapps.c:1403
+msgid "   <b><small>(will be installed)</small></b>"
+msgstr "   <b><small>(será instalado)</small></b>"
+
+#: ../src/rp_prefapps.c:1404
+msgid "   <b><small>(will be removed)</small></b>"
+msgstr "   <b><small>(será removido)</small></b>"
+
+#: ../src/rp_prefapps.c:1407
+#, c-format
+msgid ""
+"<b>%s</b>%s\n"
+"%s"
+msgstr ""
+"<b>%s</b>%s\n"
+"%s"
+
+#: ../src/rp_prefapps.c:1418
+msgid ""
+"An installed application requires a reboot.\n"
+"Would you like to reboot now?"
+msgstr ""
+"Um aplicativo instalado requer um reinicio.\n"
+"Você gostaria de reiniciar agora?"
+
+#: ../src/rp_prefapps.c:1471
+msgid "Synchronising clock - please wait..."
+msgstr "Sincronizando relógio - por favor espere..."
+
+#: ../src/rp_prefapps.c:1476
+msgid "No network connection - applications cannot be installed"
+msgstr "Sem conexão com a rede - aplicativos não podem ser instalados"
+
+#: ../src/rp_prefapps.c:1537
+msgid "Application"
+msgstr "Aplicativo"
+
+#: ../src/rp_prefapps.c:1538
+msgid "Install"
+msgstr "Instalar"
+
+#. End of file
+#. ----------------------------------------------------------------------------
+#: ../data/rp_prefapps.ui.h:1
+msgid "_OK"
+msgstr "_OK"
+
+#: ../data/rp_prefapps.ui.h:2 ../data/rp-prefapps.desktop.in.h:1
+msgid "Recommended Software"
+msgstr "Software recomendado"
+
+#: ../data/rp_prefapps.ui.h:3
+msgid "_Close"
+msgstr "_Fechar"
+
+#: ../data/rp_prefapps.ui.h:4
+msgid "_Apply"
+msgstr "_Aplicar"
+
+#: ../data/rp_prefapps.ui.h:5
+msgid "label"
+msgstr "rotulo"
+
+#: ../data/rp_prefapps.ui.h:6
+msgid "_Cancel"
+msgstr "_Cancelar"
+
+#: ../data/rp-prefapps.desktop.in.h:2
+msgid "Install additional programs recommended for use on the Pi"
+msgstr "Instalar programas adicionais recomendados para o Pi"
