@@ -460,7 +460,7 @@ static void read_data_file (PkClient *client)
     gchar **groups, **pnames;
     gchar *buf, *cat, *name, *desc, *iname, *loc, *pack, *rpack, *adds, *add, *addspl, *arch, *fname;
     gboolean new, reboot, rpdesc, xonly, wonly;
-    int pcount = 0, gcount = 0;
+    int pcount = 0, gcount = 0, scale;
 
     loc = setlocale (0, "");
     strtok (loc, "_. ");
@@ -476,7 +476,7 @@ static void read_data_file (PkClient *client)
         if (first_read)
         {
             gtk_list_store_append (GTK_LIST_STORE (categories), &cat_entry);
-            icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), "rpi", 32, 0, NULL);
+            icon = gtk_icon_theme_load_icon_for_scale (gtk_icon_theme_get_default (), "rpi", 32, gtk_widget_get_scale_factor (main_dlg), 0, NULL);
             gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, "All Programs", CAT_DISP_NAME, _("All Programs"), -1);
             if (icon) g_object_unref (icon);
         }
@@ -568,7 +568,7 @@ static void read_data_file (PkClient *client)
 
                 if (new)
                 {
-                    icon = gtk_icon_theme_load_icon (gtk_icon_theme_get_default (), cat_icon_name (cat), 32, 0, NULL);
+                    icon = gtk_icon_theme_load_icon_for_scale (gtk_icon_theme_get_default (), cat_icon_name (cat), 32, gtk_widget_get_scale_factor (main_dlg), 0, NULL);
                     gtk_list_store_append (categories, &cat_entry);
                     gtk_list_store_set (categories, &cat_entry, CAT_ICON, icon, CAT_NAME, cat, CAT_DISP_NAME, _(cat), -1);
                     if (icon) g_object_unref (icon);
@@ -576,12 +576,14 @@ static void read_data_file (PkClient *client)
             }
 
             // create the entry for the packages list
+            scale = gtk_widget_get_scale_factor (main_dlg);
             fname = g_strdup_printf ("%s/%s.png", PACKAGE_DATA_DIR, iname);
-            icon = gdk_pixbuf_new_from_file_at_size (fname, 32, 32, NULL);
+            icon = gdk_pixbuf_new_from_file_at_size (fname, 32 * scale, 32 * scale, NULL);
+
             g_free (fname);
             if (!icon)
             {
-                iinfo = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_default (), "application-x-executable", 32, GTK_ICON_LOOKUP_FORCE_SIZE);
+                iinfo = gtk_icon_theme_lookup_icon_for_scale (gtk_icon_theme_get_default (), "application-x-executable", 32, scale, GTK_ICON_LOOKUP_FORCE_SIZE);
                 if (iinfo)
                 {
                     icon = gtk_icon_info_load_icon (iinfo, NULL);
@@ -1605,6 +1607,10 @@ int main (int argc, char *argv[])
     crt = gtk_cell_renderer_text_new ();
     crb = gtk_cell_renderer_toggle_new ();
     gtk_cell_renderer_set_padding (crp, 5, 5);
+    GValue val = G_VALUE_INIT;
+    g_value_init (&val, G_TYPE_INT);
+    g_value_set_int (&val, gtk_widget_get_scale_factor (main_dlg));
+    g_object_set_property (G_OBJECT (crp), "scale", &val);
 
     gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 0, "Icon", crp, "pixbuf", CAT_ICON, NULL);
     gtk_tree_view_insert_column_with_attributes (GTK_TREE_VIEW (cat_tv), 1, "Category", crt, "text", CAT_DISP_NAME, NULL);
