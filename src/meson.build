@@ -1,5 +1,6 @@
 sources = files (
-    'rp_prefapps.c'
+    'rp_prefapps.c',
+    'activate.c'
 )
 
 gtk = dependency ('gtk+-3.0')
