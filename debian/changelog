@@ -1,3 +1,9 @@
+rp-prefapps (1.11) trixie; urgency=medium
+
+  * Only allow one instance
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 31 Mar 2026 14:56:26 +0100
+
 rp-prefapps (1.10) trixie; urgency=medium
 
   * Add support for scaling for HiDPI
