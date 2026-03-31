@@ -1673,7 +1673,7 @@ static void activate_app (void)
 {
     struct xdg_activation_token_v1 *token = xdg_activation_v1_get_activation_token (activation);
     xdg_activation_token_v1_add_listener (token, &token_listener, NULL);
-    xdg_activation_token_v1_set_app_id (token, "rpcc");
+    xdg_activation_token_v1_set_app_id (token, "rp-prefapps");
     xdg_activation_token_v1_set_serial (token, last_serial, wseat);
     xdg_activation_token_v1_commit (token);
 }
