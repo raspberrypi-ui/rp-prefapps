@@ -29,6 +29,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <gdk/gdkwayland.h>
 #include "xdg-activation-v1-client-protocol.h"
 
+#include "activate.h"
+
 /*----------------------------------------------------------------------------*/
 /* Global data                                                                */
 /*----------------------------------------------------------------------------*/

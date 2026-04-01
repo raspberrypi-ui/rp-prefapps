@@ -45,6 +45,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <libintl.h>
 
+#include "activate.h"
+
 /* Columns in packages and categories list stores */
 
 #define PACK_ICON           0
@@ -135,10 +137,6 @@ static void close_handler (GtkButton* btn, gpointer ptr);
 static void search_update (GtkEditable *editable, gpointer userdata);
 static void get_locales (void);
 static gboolean first_draw (GtkWidget *instance);
-
-extern void init_dbus (const char *id);
-extern void close_dbus (void);
-extern void setup_activate (GtkWidget *window);
 
 #ifdef PK_DEBUG
 const char *roles[PK_ROLE_ENUM_LAST + 1] = {
