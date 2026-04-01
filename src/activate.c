@@ -3,22 +3,13 @@
 #include <gdk/gdkwayland.h>
 #include "xdg-activation-v1-client-protocol.h"
 
+static char *app_id;
+
 /* DBus */
 
-#define DBUS_BUS_NAME       "com.raspberrypi.prefapps"
-#define DBUS_OBJECT_PATH    "/com/raspberrypi/prefapps"
-#define DBUS_INTERFACE_NAME "com.raspberrypi.prefapps"
-
 static guint busid;
-static GDBusNodeInfo *introspection_data = NULL;
 
-static const gchar introspection_xml[] =
-  "<node>"
-  "  <interface name='" DBUS_INTERFACE_NAME "'>"
-  "    <method name='activate'>"
-  "    </method>"
-  "  </interface>"
-  "</node>";
+
 
 struct xdg_activation_v1 *activation;
 struct wl_seat *wseat;
@@ -42,10 +33,12 @@ static const GDBusInterfaceVTable interface_vtable =
     handle_method_call, NULL, NULL, { 0 }
 };
 
-void init_dbus (void)
+void init_dbus (const char *id)
 {
-    busid = g_bus_own_name (G_BUS_TYPE_SESSION, DBUS_BUS_NAME, G_BUS_NAME_OWNER_FLAGS_NONE,
-        NULL, name_acquired, name_lost, NULL, NULL);
+    char *bus_name = g_strdup_printf ("com.raspberrypi.%s", id);
+    app_id = g_strdup (id);
+    busid = g_bus_own_name (G_BUS_TYPE_SESSION, bus_name, G_BUS_NAME_OWNER_FLAGS_NONE, NULL, name_acquired, name_lost, NULL, NULL);
+    g_free (bus_name);
 }
 
 void close_dbus (void)
@@ -55,22 +48,33 @@ void close_dbus (void)
 
 static void name_acquired (GDBusConnection *connection, const gchar *name, gpointer)
 {
-    /* name not on DBus, so this is the first instance - set up handler for newtab function */
-    introspection_data = g_dbus_node_info_new_for_xml (introspection_xml, NULL);
-    g_dbus_connection_register_object (connection, DBUS_OBJECT_PATH, introspection_data->interfaces[0],
-        &interface_vtable, NULL, NULL, NULL);
+    /* name not on DBus, so this is the first instance - set up handler for activate function */
+    char *object_path = g_strdup_printf ("/com/raspberrypi/%s", app_id);
+    char *introspection_xml = g_strdup_printf ("<node><interface name='com.raspberrypi.%s'><method name='activate'></method></interface></node>", app_id);
+    GDBusNodeInfo *introspection_data = g_dbus_node_info_new_for_xml (introspection_xml, NULL);
+
+    g_dbus_connection_register_object (connection, object_path, introspection_data->interfaces[0], &interface_vtable, NULL, NULL, NULL);
+
+    g_dbus_node_info_unref (introspection_data);
+    g_free (introspection_xml);
+    g_free (object_path);
 }
 
 static void name_lost (GDBusConnection *connection, const gchar *name, gpointer)
 {
-    GDBusProxy *proxy;
+    /* name already on DBus, so application already running - call the activate function on the existing instance and then exit */
+    char *bus_name = g_strdup_printf ("com.raspberrypi.%s", app_id);
+    char *object_path = g_strdup_printf ("/com/raspberrypi/%s", app_id);
+    char *interface_name =  g_strdup_printf ("com.raspberrypi.%s", app_id);
 
-    /* name already on DBus, so application already running - call the newtab function on the existing instance and then exit */
-    proxy = g_dbus_proxy_new_sync (connection, G_DBUS_PROXY_FLAGS_NONE, NULL, DBUS_BUS_NAME, DBUS_OBJECT_PATH, DBUS_INTERFACE_NAME, NULL, NULL);
+    GDBusProxy *proxy = g_dbus_proxy_new_sync (connection, G_DBUS_PROXY_FLAGS_NONE, NULL, bus_name, object_path, interface_name, NULL, NULL);
     g_dbus_proxy_call_sync (proxy, "activate", NULL, G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
     g_dbus_connection_close_sync (connection, NULL, NULL);
 
     g_object_unref (proxy);
+    g_free (bus_name);
+    g_free (object_path);
+    g_free (interface_name);
     exit (0);
 }
 
@@ -83,7 +87,12 @@ static void handle_method_call (GDBusConnection *, const gchar*, const gchar*, c
         if (getenv ("WAYLAND_DISPLAY")) activate_app ();
         else gtk_window_present (GTK_WINDOW (toact));
     }
-    else g_dbus_method_invocation_return_dbus_error (invocation, DBUS_INTERFACE_NAME ".Failed", "Unsupported method call");
+    else
+    {
+        char *err = g_strdup_printf ("com.raspberrypi.%s.Failed", app_id);
+        g_dbus_method_invocation_return_dbus_error (invocation, err, "Unsupported method call");
+        g_free (err);
+    }
 }
 
 /*----------------------------------------------------------------------------*/

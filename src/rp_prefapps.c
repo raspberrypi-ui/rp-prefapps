@@ -136,7 +136,7 @@ static void search_update (GtkEditable *editable, gpointer userdata);
 static void get_locales (void);
 static gboolean first_draw (GtkWidget *instance);
 
-extern void init_dbus (void);
+extern void init_dbus (const char *id);
 extern void close_dbus (void);
 extern void setup_activate (GtkWidget *window);
 
@@ -1575,7 +1575,7 @@ int main (int argc, char *argv[])
     GtkBuilder *builder;
     GtkCellRenderer *crp, *crt, *crb;
 
-    init_dbus ();
+    init_dbus ("prefapps");
 
     setlocale (LC_ALL, "");
     bindtextdomain (GETTEXT_PACKAGE, PACKAGE_LOCALE_DIR);
