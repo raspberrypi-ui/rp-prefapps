@@ -25,6 +25,7 @@ data = files (
 
 install_data(data, install_dir: resource_dir)
 install_data('10-rp-prefapps.rules', install_dir: polkit_dir)
+install_subdir('icons', install_dir: share_dir)
 
 i18n.merge_file(input: 'rp-prefapps.desktop.in',
       output: 'rp-prefapps.desktop',
@@ -33,3 +34,6 @@ i18n.merge_file(input: 'rp-prefapps.desktop.in',
       install: true,
       install_dir: desktop_dir
 )
+
+gnome = import ('gnome')
+gnome.post_install (gtk_update_icon_cache : true)
