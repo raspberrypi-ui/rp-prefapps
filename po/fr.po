@@ -1,5 +1,5 @@
 # rp-prefapps English translation file.
-# Copyright (C) 2024 Raspberry Pi Ltd
+# Copyright (C) 2026 Raspberry Pi Ltd
 # This file is distributed under the same license as the rp-prefapps package.
 # Pierre Gobin <p.dev@gobin.cc>, 2026.
 #
