@@ -1,0 +1,226 @@
+# rp-prefapps English translation file.
+# Copyright (C) 2024 Raspberry Pi Ltd
+# This file is distributed under the same license as the rp-prefapps package.
+# Pierre Gobin <p.dev@gobin.cc>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: rp-prefapps\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-06 10:48+0200\n"
+"PO-Revision-Date: 2026-08-06 20:43+0200\n"
+"Last-Translator: Pierre Gobin <p.dev@gobin.cc>\n"
+"Language-Team: \n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.9\n"
+
+#: src/rp_prefapps.c:292 src/rp_prefapps.c:644 src/rp_prefapps.c:831
+msgid "Reading package details - please wait..."
+msgstr "Lecture des détails du paquet - merci de patienter..."
+
+#: src/rp_prefapps.c:298 src/rp_prefapps.c:433
+msgid "Updating application - please wait..."
+msgstr "Mise à jour de l'application - merci de patienter..."
+
+#: src/rp_prefapps.c:304 src/rp_prefapps.c:1039
+msgid "Downloading packages - please wait..."
+msgstr "Téléchargement des paquets - merci de patienter..."
+
+#: src/rp_prefapps.c:306
+msgid "Installing packages - please wait..."
+msgstr "Installation des paquets - merci de patienter..."
+
+#: src/rp_prefapps.c:312 src/rp_prefapps.c:1046 src/rp_prefapps.c:1067
+msgid "Removing packages - please wait..."
+msgstr "Suppression des paquets - merci de patienter..."
+
+#: src/rp_prefapps.c:337 src/rp_prefapps.c:348
+#, c-format
+msgid "Error %s - %s"
+msgstr "Erreur %s - %s"
+
+#: src/rp_prefapps.c:366 src/rp_prefapps.c:382 src/rp_prefapps.c:1319
+msgid "Checking for updates - please wait..."
+msgstr "Recherche de mises à jour - merci de patienter..."
+
+#: src/rp_prefapps.c:380
+msgid "updating package data"
+msgstr "mise à jour des données du paquet"
+
+#: src/rp_prefapps.c:411 src/rp_prefapps.c:702
+msgid "finding packages"
+msgstr "recherche des paquets"
+
+#: src/rp_prefapps.c:482 src/rp_prefapps.c:848 src/rp_prefapps.c:849
+msgid "All Programs"
+msgstr "Tous les programmes"
+
+#: src/rp_prefapps.c:596
+#, c-format
+msgid ""
+"<b>%s</b>\n"
+"%s"
+msgstr ""
+"<b>%s</b>\n"
+"%s"
+
+#: src/rp_prefapps.c:640
+msgid "Unable to open package data file"
+msgstr "Impossible d'ouvrir le fichier de données du paquet"
+
+#: src/rp_prefapps.c:870
+msgid "reading package details"
+msgstr "lecture des détails du paquet"
+
+#: src/rp_prefapps.c:1060
+msgid "installing packages"
+msgstr "installation des paquets"
+
+#: src/rp_prefapps.c:1072
+msgid "Installation complete"
+msgstr "Installation terminée"
+
+#: src/rp_prefapps.c:1077
+msgid "removing packages"
+msgstr "suppression des paquets"
+
+#: src/rp_prefapps.c:1083
+msgid "Installation and removal complete"
+msgstr "Installation et suppression terminées"
+
+#: src/rp_prefapps.c:1085
+msgid "Removal complete"
+msgstr "Suppression terminée"
+
+#: src/rp_prefapps.c:1126
+msgid "Error synchronising clock - could not sync with time server"
+msgstr "Erreur de synchronisation de l'horloge - impossible de se synchroniser avec le serveur de temps"
+
+#: src/rp_prefapps.c:1172
+msgid "Programming"
+msgstr "Programmation"
+
+#: src/rp_prefapps.c:1175
+msgid "Office"
+msgstr "Bureautique"
+
+#: src/rp_prefapps.c:1178
+msgid "Internet"
+msgstr "Internet"
+
+#: src/rp_prefapps.c:1181
+msgid "Games"
+msgstr "Jeux"
+
+#: src/rp_prefapps.c:1184
+msgid "Other"
+msgstr "Autres"
+
+#: src/rp_prefapps.c:1187
+msgid "Accessories"
+msgstr "Accessoires"
+
+#: src/rp_prefapps.c:1190
+msgid "Sound & Video"
+msgstr "Son & Vidéo"
+
+#: src/rp_prefapps.c:1193
+msgid "System Tools"
+msgstr "Outils système"
+
+#: src/rp_prefapps.c:1196
+msgid "Engineering"
+msgstr "Ingénierie"
+
+#: src/rp_prefapps.c:1199
+msgid "Education"
+msgstr "Éducation"
+
+#: src/rp_prefapps.c:1202
+msgid "Graphics"
+msgstr "Graphisme"
+
+#: src/rp_prefapps.c:1205
+msgid "Science & Maths"
+msgstr "Sciences & Mathématiques"
+
+#: src/rp_prefapps.c:1208
+msgid "Preferences"
+msgstr "Préférences"
+
+#: src/rp_prefapps.c:1211
+msgid "Universal Access"
+msgstr "Accès universel"
+
+#: src/rp_prefapps.c:1489
+msgid "   <b><small>(will be installed)</small></b>"
+msgstr "   <b><small>(sera installé)</small></b>"
+
+#: src/rp_prefapps.c:1490
+msgid "   <b><small>(will be removed)</small></b>"
+msgstr "   <b><small>(sera supprimé)</small></b>"
+
+#: src/rp_prefapps.c:1493
+#, c-format
+msgid ""
+"<b>%s</b>%s\n"
+"%s"
+msgstr ""
+"<b>%s</b>%s\n"
+"%s"
+
+#: src/rp_prefapps.c:1504
+msgid ""
+"An installed application requires a reboot.\n"
+"Would you like to reboot now?"
+msgstr ""
+"Une application installée requiert un redémarrage.\n"
+"Souhaitez-vous redémarrer maintenant ?"
+
+#: src/rp_prefapps.c:1557
+msgid "Synchronising clock - please wait..."
+msgstr "Synchronisation de l'horloge - merci de patienter..."
+
+#: src/rp_prefapps.c:1562
+msgid "No network connection - applications cannot be installed"
+msgstr "Aucune connexion réseau - les applications ne peuvent pas être installées"
+
+#: src/rp_prefapps.c:1627
+msgid "Application"
+msgstr "Application"
+
+#: src/rp_prefapps.c:1628
+msgid "Install"
+msgstr "Installer"
+
+#: data/rp_prefapps.ui:61 data/rp_prefapps.ui:329
+msgid "_OK"
+msgstr "_OK"
+
+#: data/rp_prefapps.ui:96 data/rp-prefapps.desktop.in:3
+#: data/rp-prefapps.desktop.in:4
+msgid "Recommended Software"
+msgstr "Logiciels recommandés"
+
+#: data/rp_prefapps.ui:217
+msgid "_Close"
+msgstr "_Fermer"
+
+#: data/rp_prefapps.ui:231
+msgid "_Apply"
+msgstr "_Appliquer"
+
+#: data/rp_prefapps.ui:287
+msgid "label"
+msgstr "étiquette"
+
+#: data/rp_prefapps.ui:314
+msgid "_Cancel"
+msgstr "A_nnuler"
+
+#: data/rp-prefapps.desktop.in:5
+msgid "Install additional programs recommended for use on the Pi"
+msgstr "Installer des programmes additionnels recommandés pour le Raspberry Pi"
