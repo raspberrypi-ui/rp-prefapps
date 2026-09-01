@@ -1,3 +1,9 @@
+rp-prefapps (1.13) trixie; urgency=medium
+
+  * Add French and Georgian translations
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 01 Sep 2026 13:41:13 +0100
+
 rp-prefapps (1.12) trixie; urgency=medium
 
   * New icon
