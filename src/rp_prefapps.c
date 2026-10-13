@@ -396,7 +396,7 @@ static gboolean filter_fn (PkPackage *package, gpointer user_data)
         if (!g_strcmp0 (pkarch, sysarch)) return TRUE;   // catches arm64 case...
         return FALSE;
     }
-    if (strstr (pk_package_get_arch (package), "i386")) return FALSE;
+    if (strstr (pkarch, "i386")) return FALSE;
     return TRUE;
 }
 
