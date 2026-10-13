@@ -1,3 +1,9 @@
+rp-prefapps (1.14) trixie; urgency=medium
+
+  * Update to work correctly with amd64 build
+
+ -- Simon Long <simon@raspberrypi.com>  Tue, 13 Oct 2026 11:19:30 +0100
+
 rp-prefapps (1.13) trixie; urgency=medium
 
   * Add French and Georgian translations
