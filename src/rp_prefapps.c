@@ -103,12 +103,10 @@ gboolean wayland = FALSE;
 /* Prototypes                                                                 */
 /*----------------------------------------------------------------------------*/
 
-static char *get_string (char *cmd);
 static void progress (PkProgress *progress, PkProgressType type, gpointer data);
 static PkResults *error_handler (PkTask *task, PkClient *client, GAsyncResult *res, char *desc, gboolean silent, gboolean terminal);
 static gboolean update_self (gpointer data);
 static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data);
-static gboolean filter_fn (PkPackage *package, gpointer user_data);
 static void get_updates_done (PkClient *client, GAsyncResult *res, gpointer data);
 static void update_done (PkTask *task, GAsyncResult *res, gpointer data);
 static void read_data_file (PkClient *client);
@@ -243,28 +241,6 @@ const char *types[PK_PROGRESS_TYPE_SENDER + 1] = {
 /* Generic helper functions                                                   */
 /*----------------------------------------------------------------------------*/
 
-static char *get_string (char *cmd)
-{
-    char *line = NULL, *res = NULL;
-    size_t len = 0;
-    FILE *fp = popen (cmd, "r");
-
-    if (fp == NULL) return NULL;
-    if (getline (&line, &len, fp) > 0)
-    {
-        res = line;
-        while (*res)
-        {
-            if (g_ascii_isspace (*res)) *res = 0;
-            res++;
-        }
-        res = g_strdup (line);
-    }
-    pclose (fp);
-    g_free (line);
-    return res;
-}
-
 /*----------------------------------------------------------------------------*/
 /* Helper functions for async operations                                      */
 /*----------------------------------------------------------------------------*/
@@ -381,31 +357,14 @@ static void refresh_cache_done (PkTask *task, GAsyncResult *res, gpointer data)
 
     message (_("Checking for updates - please wait..."), MSG_PULSE);
 
-    pk_client_get_updates_async (PK_CLIENT (task), 0, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) get_updates_done, NULL);
-}
-
-static gboolean filter_fn (PkPackage *package, gpointer user_data)
-{
-    const char *sysarch = (char *) user_data;
-    const char *pkarch = pk_package_get_arch (package);
-
-    if (is_pi)
-    {
-        if (!g_strcmp0 (pkarch, "all")) return TRUE;
-        if (!g_strcmp0 (pkarch, "armhf")) return TRUE;
-        if (!g_strcmp0 (pkarch, sysarch)) return TRUE;   // catches arm64 case...
-        return FALSE;
-    }
-    if (strstr (pkarch, "i386")) return FALSE;
-    return TRUE;
+    pk_client_get_updates_async (PK_CLIENT (task), pk_bitfield_value (PK_FILTER_ENUM_ARCH), NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) get_updates_done, NULL);
 }
 
 static void get_updates_done (PkClient *client, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
-    PkPackageSack *sack, *fsack;
+    PkPackageSack *sack;
     gchar **ids;
-    gchar *arch;
     gchar *todo[2] = {NULL, NULL};
 
     results = error_handler (NULL, client, res, _("finding packages"), TRUE, FALSE);
@@ -414,11 +373,8 @@ static void get_updates_done (PkClient *client, GAsyncResult *res, gpointer data
     if (results)
     {
         sack = pk_results_get_package_sack (results);
-        arch = get_string ("dpkg-architecture -q DEB_BUILD_ARCH");
-        fsack = pk_package_sack_filter (sack, filter_fn, arch);
-        g_free (arch);
 
-        ids = pk_package_sack_get_ids (fsack);
+        ids = pk_package_sack_get_ids (sack);
         int id = 0;
         while (ids[id])
         {
@@ -434,12 +390,10 @@ static void get_updates_done (PkClient *client, GAsyncResult *res, gpointer data
             pk_task_update_packages_async (PK_TASK (client), todo, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) update_done, NULL);
             g_free (todo[0]);
             g_object_unref (sack);
-            g_object_unref (fsack);
         }
         else
         {
             g_object_unref (sack);
-            g_object_unref (fsack);
             read_data_file (client);
         }
     }
@@ -688,7 +642,7 @@ static void resolve_2_done (PkClient *client, GAsyncResult *res, gpointer data)
 {
     PkResults *results;
     PkPackage *item;
-    PkPackageSack *sack, *fsack;
+    PkPackageSack *sack;
     PkInfoEnum info;
     GPtrArray *array;
     GtkTreeIter iter;
@@ -703,10 +657,7 @@ static void resolve_2_done (PkClient *client, GAsyncResult *res, gpointer data)
     if (!results) return;
 
     sack = pk_results_get_package_sack (results);
-    arch = get_string ("dpkg-architecture -q DEB_BUILD_ARCH");
-    fsack = pk_package_sack_filter (sack, filter_fn, arch);
-    g_free (arch);
-    array = pk_package_sack_get_array (fsack);
+    array = pk_package_sack_get_array (sack);
 
     // Need to loop through the array of returned IDs twice. On the first pass, only look at
     // IDs of packages which are installed; for each of those, store the ID. Need to store both
@@ -830,11 +781,10 @@ static void resolve_2_done (PkClient *client, GAsyncResult *res, gpointer data)
 
     message (_("Reading package details - please wait..."), MSG_PULSE);
 
-    ids = pk_package_sack_get_ids (fsack);
+    ids = pk_package_sack_get_ids (sack);
     pk_client_get_details_async (client, ids, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) details_done, NULL);
     g_strfreev (ids);
     g_object_unref (sack);
-    g_object_unref (fsack);
 }
 
 static int category_sort (GtkTreeModel *model, GtkTreeIter *a, GtkTreeIter *b, gpointer userdata)

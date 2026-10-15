@@ -1,3 +1,9 @@
+rp-prefapps (1.17) trixie; urgency=medium
+
+  * Remove redundant old architecture filter
+
+ -- Simon Long <simon@raspberrypi.com>  Thu, 15 Oct 2026 16:33:48 +0100
+
 rp-prefapps (1.16) trixie; urgency=medium
 
   * Implement architecture filtering
