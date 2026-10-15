@@ -643,7 +643,7 @@ static void read_data_file (PkClient *client)
 
     message (_("Reading package details - please wait..."), MSG_PULSE);
 
-    pk_client_resolve_async (client, 0, pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_2_done, NULL);
+    pk_client_resolve_async (client, pk_bitfield_value (PK_FILTER_ENUM_ARCH), pnames, NULL, (PkProgressCallback) progress, NULL, (GAsyncReadyCallback) resolve_2_done, NULL);
     g_free (pnames);
 }
 
