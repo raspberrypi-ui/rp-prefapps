@@ -1530,7 +1530,7 @@ int main (int argc, char *argv[])
     bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
     textdomain (GETTEXT_PACKAGE);
 
-    if (system ("raspi-config nonint is_pi")) is_pi = FALSE;
+    if (system ("rcn nonint get_matching_pis XX > /dev/null")) is_pi = FALSE;
     if (getenv ("WAYLAND_DISPLAY")) wayland = TRUE;
 
     get_locales ();

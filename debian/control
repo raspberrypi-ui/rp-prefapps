@@ -9,6 +9,6 @@ Homepage: http://raspberrypi.com/
 
 Package: rp-prefapps
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, packagekit, raspi-config, desktop-file-utils
+Depends: ${shlibs:Depends}, ${misc:Depends}, packagekit, rcn, desktop-file-utils
 Description: Raspberry Pi recommended applications
  Installer for selected packages recommended for Raspberry Pi users
