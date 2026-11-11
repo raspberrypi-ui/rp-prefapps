@@ -1,3 +1,9 @@
+rp-prefapps (1.18) trixie; urgency=medium
+
+  * Modify for rcn
+
+ -- Simon Long <simon@raspberrypi.com>  Wed, 11 Nov 2026 13:19:37 +0000
+
 rp-prefapps (1.17) trixie; urgency=medium
 
   * Remove redundant old architecture filter
