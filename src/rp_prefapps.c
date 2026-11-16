@@ -1037,14 +1037,7 @@ static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 
 static gboolean clock_synced (void)
 {
-    if (system ("test -e /usr/sbin/ntpd") == 0)
-    {
-        if (system ("ntpq -p | grep -q ^\\*") == 0) return TRUE;
-    }
-    else
-    {
-        if (system ("timedatectl status | grep -q \"synchronized: yes\"") == 0) return TRUE;
-    }
+    if (system ("timedatectl status | grep -q \"synchronized: yes\"") == 0) return TRUE;
     return FALSE;
 }
 
