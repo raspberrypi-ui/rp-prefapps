@@ -1,3 +1,9 @@
+rp-prefapps (1.19) trixie; urgency=medium
+
+  * Update polkit rule
+
+ -- Simon Long <simon@raspberrypi.com>  Mon, 16 Nov 2026 07:24:58 +0000
+
 rp-prefapps (1.18) trixie; urgency=medium
 
   * Modify for rcn

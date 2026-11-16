@@ -93,7 +93,7 @@ guint n_inst, n_uninst;
 gchar **pinst, **puninst;
 
 char *lang, *lang_loc;
-gboolean needs_reboot, first_read, no_update = FALSE, is_pi = TRUE;
+gboolean needs_reboot, first_read, no_update = FALSE;
 int calls;
 gchar *sel_cat;
 gulong draw_id;
@@ -1050,14 +1050,7 @@ static gboolean clock_synced (void)
 
 static void resync (void)
 {
-    if (system ("test -e /usr/sbin/ntpd") == 0)
-    {
-        system ("/etc/init.d/ntp stop; ntpd -gq; /etc/init.d/ntp start");
-    }
-    else
-    {
-        system ("systemctl -q restart systemd-timesyncd 2> /dev/null");
-    }
+    system ("systemctl -q restart systemd-timesyncd 2> /dev/null");
 }
 
 static gboolean ntp_check (gpointer data)
@@ -1530,7 +1523,6 @@ int main (int argc, char *argv[])
     bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
     textdomain (GETTEXT_PACKAGE);
 
-    if (system ("rcn nonint get_matching_pis XX > /dev/null")) is_pi = FALSE;
     if (getenv ("WAYLAND_DISPLAY")) wayland = TRUE;
 
     get_locales ();
