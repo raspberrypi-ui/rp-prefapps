@@ -1,3 +1,9 @@
+rp-prefapps (0.69+sec2) bookworm; urgency=medium
+
+  * Allow self-update without password
+
+ -- Simon Long <simon@raspberrypi.com>  Wed, 18 Nov 2026 10:17:10 +0000
+
 rp-prefapps (0.69+sec1) bookworm; urgency=medium
 
   * Polkit fix from trixie
