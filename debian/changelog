@@ -1,3 +1,9 @@
+rp-prefapps (0.69+sec1) bookworm; urgency=medium
+
+  * Polkit fix from trixie
+
+ -- Simon Long <simon@raspberrypi.com>  Wed, 18 Nov 2026 09:04:22 +0000
+
 rp-prefapps (0.69) bookworm; urgency=medium
 
   * Rename mage package
