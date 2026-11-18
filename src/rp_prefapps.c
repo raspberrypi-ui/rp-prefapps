@@ -1084,27 +1084,13 @@ static void remove_done (PkTask *task, GAsyncResult *res, gpointer data)
 
 static gboolean clock_synced (void)
 {
-    if (system ("test -e /usr/sbin/ntpd") == 0)
-    {
-        if (system ("ntpq -p | grep -q ^\\*") == 0) return TRUE;
-    }
-    else
-    {
-        if (system ("timedatectl status | grep -q \"synchronized: yes\"") == 0) return TRUE;
-    }
+    if (system ("timedatectl status | grep -q \"synchronized: yes\"") == 0) return TRUE;
     return FALSE;
 }
 
 static void resync (void)
 {
-    if (system ("test -e /usr/sbin/ntpd") == 0)
-    {
-        system ("/etc/init.d/ntp stop; ntpd -gq; /etc/init.d/ntp start");
-    }
-    else
-    {
-        system ("systemctl -q stop systemd-timesyncd 2> /dev/null; systemctl -q start systemd-timesyncd 2> /dev/null");
-    }
+    system ("systemctl -q restart systemd-timesyncd 2> /dev/null");
 }
 
 static gboolean ntp_check (gpointer data)
