@@ -1,3 +1,9 @@
+rp-prefapps (1.21) trixie; urgency=medium
+
+  * Add polkit rule to allow self-update
+
+ -- Simon Long <simon@raspberrypi.com>  Wed, 18 Nov 2026 10:10:18 +0000
+
 rp-prefapps (1.20) trixie; urgency=medium
 
   * Remove polkit rule - password always required for installation

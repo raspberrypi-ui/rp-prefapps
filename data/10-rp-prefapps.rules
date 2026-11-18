@@ -5,3 +5,11 @@ polkit.addRule(function(action, subject) {
         return polkit.Result.YES;
     }
 });
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.freedesktop.packagekit.system-update" &&
+        (action.lookup("cmdline") == "rp-prefapps" || action.lookup("cmdline") == "/usr/bin/rp-prefapps") &&
+        subject.isInGroup("sudo")) {
+        return polkit.Result.YES;
+    }
+});
